@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import axios from "axios";
 import AuthPageSideBar from "../components/AuthPageSideBar";
 import SocialAuth from "../components/SocialAuth";
 import { Eye, EyeOff } from "lucide-react";
@@ -47,6 +48,13 @@ const SignUp = () => {
     return Object.keys(newErrors).length === 0;
   };
 
+  const splitName = (fullName) => {
+    const names = fullName.trim().split(/\s+/);
+    const firstName = names[0] || "";
+    const lastName = names.slice(1).join(" ") || "";
+    return { firstName, lastName };
+  };
+
   const handleInputChange = (e) => {
     const { name, value, type, checked } = e.target;
     setFormData({
@@ -74,36 +82,31 @@ const SignUp = () => {
     setApiError("");
 
     try {
-      const response = await fetch(
-        "https://your-heroku-app.herokuapp.com/api/auth/signup",
+      const { firstName, lastName } = splitName(formData.name);
+
+      const response = await axios.post(
+        "https://directly-core.onrender.com/users",
         {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            name: formData.name,
-            email: formData.email,
-            password: formData.password,
-          }),
+          firstName,
+          lastName,
+          email: formData.email,
+          password: formData.password,
         }
       );
 
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.message || "Registration failed");
-      }
-
       // Store the token if your API returns one
-      if (data.token) {
-        localStorage.setItem("authToken", data.token);
+      if (response.data.token) {
+        localStorage.setItem("authToken", response.data.token);
       }
 
       // Redirect to dashboard or verification page
-      navigate("/dashboard");
+      navigate("/verify-email");
     } catch (error) {
-      setApiError(error.message || "An error occurred during registration");
+      setApiError(
+        error.response?.data?.message ||
+          error.message ||
+          "An error occurred during registration"
+      );
     } finally {
       setIsLoading(false);
     }

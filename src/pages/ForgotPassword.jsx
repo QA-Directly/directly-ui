@@ -17,7 +17,7 @@ const ForgotPassword = () => {
 
     try {
       const response = await fetch(
-        "https://your-heroku-app.herokuapp.com/api/auth/forgot-password",
+        "https://directly-core.onrender.com/api/auth/forgot-password",
         {
           method: "POST",
           headers: {
