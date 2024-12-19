@@ -17,21 +17,23 @@ const ForgotPassword = () => {
   };
 
   return (
-    <div className="h-screen flex flex-row justify-center items-center">
+    <div className="min-h-screen w-full flex flex-col md:flex-row">
       {/* Sidebar */}
-      <div className="hidden md:flex">
+      <div className="hidden md:flex md:w-1/2">
         <AuthPageSideBar />
       </div>
 
       {/* Main Content */}
-      <div className="w-full md:w-2/3 h-screen flex flex-col justify-center items-center">
-        <div className="w-full md:w-[60%] h-[80%] flex flex-col justify-around items-center text-center md:my-12">
+      <div className="w-full md:w-1/2 min-h-screen flex items-center justify-center px-4 md:px-8 py-6 md:py-12">
+        <div className="w-full max-w-lg">
           {/* Logo */}
           <img src={logo} alt="Logo" className="w-1/4 md:hidden mr-auto ml-4" />
 
           {/* Header */}
-          <div className="flex flex-col gap-2 mb-4">
-            <h2 className="text-3xl font-bold">Forgot Password?</h2>
+          <div className="flex flex-col gap-2 mb-20 justify-center items-center">
+            <h2 className="text-3xl text-[#6C31F6] font-black">
+              Forgot Password?
+            </h2>
             <p className="text-sm text-gray-600">
               Enter your email and we will send a link to reset your password.
             </p>
@@ -45,7 +47,7 @@ const ForgotPassword = () => {
             <input
               type="email"
               placeholder="Enter email address"
-              className="bg-[#97B2DE]/10 w-full p-3 rounded-md"
+              className="bg-[#97B2DE]/10 w-full p-3"
               required
             />
 
@@ -62,7 +64,7 @@ const ForgotPassword = () => {
             )}
 
             <button
-              className={`bg-[#6C31F6] w-full p-3 rounded-md text-white font-bold ${
+              className={`bg-[#6C31F6] w-full p-3  text-white font-bold ${
                 isLoading ? "opacity-70 cursor-not-allowed" : ""
               }`}
               disabled={isLoading}
@@ -72,7 +74,7 @@ const ForgotPassword = () => {
           </form>
 
           {/* Back to Login Option */}
-          <div className="mt-4 text-sm">
+          <div className="mt-4 text-sm text-center">
             <Link
               to="/signin"
               className="text-[#6C31F6] font-bold hover:underline"

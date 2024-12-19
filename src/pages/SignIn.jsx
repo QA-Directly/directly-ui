@@ -39,15 +39,15 @@ const SignIn = () => {
   };
 
   return (
-    <div className="h-screen flex flex-row justify-center items-center">
+    <div className="min-h-screen w-full flex flex-col md:flex-row">
       {/* Sidebar */}
-      <div className="hidden md:flex">
+      <div className="hidden md:flex md:w-1/2">
         <AuthPageSideBar />
       </div>
 
       {/* Main Content */}
-      <div className="w-full md:w-2/3 flex flex-col justify-center items-center">
-        <div className="w-full md:w-[60%] h-auto flex flex-col justify-between items-center text-center md:my-12">
+      <div className="w-full md:w-1/2 min-h-screen flex items-center justify-center px-4 md:px-8 py-6 md:py-12">
+        <div className="w-full max-w-lg">
           {/* Logo */}
           <img
             src={logo}
@@ -56,8 +56,10 @@ const SignIn = () => {
           />
 
           {/* Header */}
-          <div className="flex flex-col gap-2 mb-4">
-            <h2 className="text-3xl font-bold">Welcome back!</h2>
+          <div className="flex flex-col gap-2 mb-20 justify-center items-center">
+            <h2 className="text-3xl text-[#6C31F6] font-black">
+              Welcome back!
+            </h2>
             <p className="text-sm text-gray-600">
               Sign in with your credentials below
             </p>
@@ -78,7 +80,7 @@ const SignIn = () => {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               placeholder="Enter email address"
-              className="bg-[#97B2DE]/10 w-full p-3 rounded-md"
+              className="bg-[#97B2DE]/10 w-full p-3 "
             />
             {errors.email && (
               <p className="text-red-500 text-sm">{errors.email}</p>
@@ -90,7 +92,7 @@ const SignIn = () => {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="Enter Password"
-                className="bg-[#97B2DE]/10 w-full p-3 rounded-md"
+                className="bg-[#97B2DE]/10 w-full p-3 "
               />
               {isVisible ? (
                 <Eye
@@ -120,7 +122,7 @@ const SignIn = () => {
 
             <button
               type="submit"
-              className={`bg-[#6C31F6] w-full p-3 rounded-md text-white font-bold ${
+              className={`bg-[#6C31F6] w-full p-3 text-white font-bold ${
                 isLoading ? "opacity-50 cursor-not-allowed" : ""
               }`}
               disabled={isLoading}
@@ -130,7 +132,7 @@ const SignIn = () => {
           </form>
 
           {/* Navigation to Sign Up Page */}
-          <div className="mt-4 text-sm">
+          <div className="mt-4 text-sm text-center">
             <p>
               Don’t have an account?{" "}
               <Link

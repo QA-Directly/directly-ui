@@ -85,4 +85,3 @@ The frontend of Directly is built with modern web technologies to provide:
 **Made with ❤️ by the Directly Team**
 
 ---
-
