@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import axios from "axios";
 import AuthPageSideBar from "../components/AuthPageSideBar";
 import SocialAuth from "../components/SocialAuth";
 import { Eye, EyeOff } from "lucide-react";
@@ -51,35 +52,68 @@ const SignIn = () => {
     setApiError("");
 
     try {
-      const response = await fetch(
+      // First, let's check if the email is verified
+      const response = await axios.post(
         "https://directly-core.onrender.com/auth/login",
         {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            email: formData.email,
-            password: formData.password,
-          }),
+          email: formData.email,
+          password: formData.password,
         }
       );
 
-      const data = await response.json();
+      const { token, user } = response.data;
 
-      if (!response.ok) {
-        throw new Error(data.message || "Invalid credentials");
+      // Check if user exists and is verified
+      if (user && !user.isEmailVerified) {
+        // If email is not verified, send a new verification email
+        try {
+          await axios.post(
+            "https://directly-core.onrender.com/auth/resend-verification",
+            { email: formData.email }
+          );
+          setApiError(
+            "Email not verified. A new verification email has been sent to your inbox."
+          );
+          return;
+        } catch (resendError) {
+          setApiError(
+            "Email not verified. Please check your inbox for the verification link."
+          );
+          return;
+        }
       }
 
-      // Store the authentication token
-      if (data.token) {
-        localStorage.setItem("authToken", data.token);
+      // If we get here, the email is verified
+      if (token) {
+        localStorage.setItem("authToken", token);
+        navigate("/dashboard");
       }
-
-      // Redirect to dashboard
-      navigate("/dashboard");
     } catch (error) {
-      setApiError(error.message || "An error occurred during sign in");
+      if (
+        error.response?.status === 403 &&
+        error.response?.data?.message?.includes("not verified")
+      ) {
+        // Handle specific verification error
+        try {
+          await axios.post(
+            "https://directly-core.onrender.com/auth/resend-verification",
+            { email: formData.email }
+          );
+          setApiError(
+            "Email not verified. A new verification link has been sent to your inbox."
+          );
+        } catch (resendError) {
+          setApiError(
+            "Email not verified. Please check your inbox for the verification link."
+          );
+        }
+      } else {
+        setApiError(
+          error.response?.data?.message ||
+            error.message ||
+            "An error occurred during sign in"
+        );
+      }
     } finally {
       setIsLoading(false);
     }
@@ -157,7 +191,6 @@ const SignIn = () => {
               )}
             </div>
 
-            {/* Forgot Password Link */}
             <div className="w-full text-right">
               <Link
                 to="/forgot-password"
@@ -205,7 +238,6 @@ const SignIn = () => {
               )}
             </button>
 
-            {/* Navigation to Sign Up Page */}
             <div className="mt-4 text-sm text-center">
               <p>
                 Don't have an account?{" "}
@@ -218,7 +250,6 @@ const SignIn = () => {
               </p>
             </div>
 
-            {/* Social Auth */}
             <div className="w-full mt-6">
               <SocialAuth action="Sign In" />
             </div>
