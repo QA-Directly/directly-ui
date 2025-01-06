@@ -1,41 +1,37 @@
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
-import axios from "axios";
-import AuthPageSideBar from "../components/AuthPageSideBar";
-import SocialAuth from "../components/SocialAuth";
 import { Eye, EyeOff } from "lucide-react";
+import AuthPageSideBar from "../components/AuthPageSideBar";
 import logo from "../assets/logo.png";
 import bgright from "../assets/bgright.png";
 
-const SignIn = () => {
+const ChangePassword = () => {
   const navigate = useNavigate();
   const [isVisible, setIsVisible] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [formData, setFormData] = useState({
-    email: "",
     password: "",
-    rememberMe: false,
+    confirmPassword: "",
   });
   const [errors, setErrors] = useState({});
   const [apiError, setApiError] = useState("");
 
   const validateForm = () => {
     const newErrors = {};
-    if (!formData.email) newErrors.email = "Email is required.";
-    if (!formData.password) newErrors.password = "Password is required.";
+    if (!formData.password) newErrors.password = "Password is required";
+    if (!formData.confirmPassword)
+      newErrors.confirmPassword = "Confirm password is required";
+    if (formData.password !== formData.confirmPassword) {
+      newErrors.confirmPassword = "Passwords do not match";
+    }
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
   const handleInputChange = (e) => {
-    const { name, value, type, checked } = e.target;
-    setFormData({
-      ...formData,
-      [name]: type === "checkbox" ? checked : value,
-    });
-    if (errors[name]) {
-      setErrors((prev) => ({ ...prev, [name]: "" }));
-    }
+    const { name, value } = e.target;
+    setFormData((prev) => ({ ...prev, [name]: value }));
+    if (errors[name]) setErrors((prev) => ({ ...prev, [name]: "" }));
     setApiError("");
   };
 
@@ -44,57 +40,21 @@ const SignIn = () => {
     if (!validateForm()) return;
 
     setIsLoading(true);
-    setApiError("");
-
     try {
-      const response = await axios.post(
-        "https://directly-core.onrender.com/auth/login",
-        {
-          email: formData.email,
-          password: formData.password,
-        }
-      );
-
-      const { token, user } = response.data;
-
-      if (user && !user.isEmailVerified) {
-        try {
-          await axios.post(
-            "https://directly-core.onrender.com/auth/resend-verification",
-            { email: formData.email }
-          );
-          setApiError(
-            "Email not verified. A new verification email has been sent to your inbox."
-          );
-          return;
-        } catch {
-          setApiError(
-            "Email not verified. Please check your inbox for the verification link."
-          );
-          return;
-        }
-      }
-
-      if (token) {
-        localStorage.setItem("authToken", token);
-        navigate("/dashboard");
-      }
+      // Add your password change API call here
+      navigate("/signin");
     } catch (error) {
-      setApiError(
-        error.response?.data?.message ||
-          error.message ||
-          "An error occurred during sign in"
-      );
+      setApiError(error.response?.data?.message || "Failed to change password");
     } finally {
       setIsLoading(false);
     }
   };
 
-  const InputField = ({ type, name, placeholder, value, icon: Icon }) => (
+  const InputField = ({ type, name, placeholder, value }) => (
     <div className="w-full flex flex-col items-center">
       <div className="relative w-full md:w-4/5">
         <input
-          type={type}
+          type={type === "password" ? (isVisible ? "text" : "password") : type}
           name={name}
           value={value}
           onChange={handleInputChange}
@@ -104,13 +64,13 @@ const SignIn = () => {
           }`}
           disabled={isLoading}
         />
-        {Icon && (
+        {type === "password" && (
           <button
             type="button"
             className="absolute right-3 top-3 text-gray-400"
             onClick={() => setIsVisible(!isVisible)}
           >
-            <Icon size={20} />
+            {isVisible ? <Eye size={20} /> : <EyeOff size={20} />}
           </button>
         )}
       </div>
@@ -123,7 +83,7 @@ const SignIn = () => {
   );
 
   return (
-    <div className="w-screen h-screen flex flex-row md:p-0 ">
+    <div className="w-screen h-screen flex flex-row md:p-0">
       <div className="hidden md:flex md:w-1/2">
         <AuthPageSideBar />
       </div>
@@ -142,11 +102,9 @@ const SignIn = () => {
 
           <div className="w-full md:w-4/5 text-center mt-14 mb-6">
             <h2 className="text-2xl md:text-3xl text-[#001F3F] font-black">
-              Welcome back!
+              Change Password
             </h2>
-            <p className="text-sm text-gray-600 mt-2">
-              Sign in with your credentials below
-            </p>
+            <p className="text-sm text-gray-600 mt-2">Create New Password</p>
           </div>
 
           {apiError && (
@@ -160,39 +118,18 @@ const SignIn = () => {
             onSubmit={handleSubmit}
           >
             <InputField
-              type="email"
-              name="email"
-              placeholder="Enter email address"
-              value={formData.email}
+              type="password"
+              name="password"
+              placeholder="New Password"
+              value={formData.password}
             />
 
             <InputField
-              type={isVisible ? "text" : "password"}
-              name="password"
-              placeholder="Enter Password"
-              value={formData.password}
-              icon={isVisible ? Eye : EyeOff}
+              type="password"
+              name="confirmPassword"
+              placeholder="Confirm Password"
+              value={formData.confirmPassword}
             />
-
-            <div className="flex justify-between w-full md:w-4/5">
-              <div className="flex items-start space-x-2 text-sm">
-                <input
-                  type="checkbox"
-                  name="rememberMe"
-                  checked={formData.rememberMe}
-                  onChange={handleInputChange}
-                  className="mt-1"
-                  disabled={isLoading}
-                />
-                <p className="text-gray-600">Remember me</p>
-              </div>
-              <Link
-                to="/forgot-password"
-                className="text-[#6C31F6] text-sm font-bold hover:underline"
-              >
-                Forgot Password?
-              </Link>
-            </div>
 
             <button
               type="submit"
@@ -225,27 +162,22 @@ const SignIn = () => {
                       d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
                     />
                   </svg>
-                  Signing In...
+                  Processing...
                 </span>
               ) : (
-                "Sign In"
+                "Reset Password"
               )}
             </button>
 
-            <div className="text-center text-sm mt-2">
-              <p>
-                Don't have an account?{" "}
-                <Link
-                  to="/signup"
-                  className="text-[#001F3F] font-bold hover:underline"
-                >
-                  Sign Up
-                </Link>
-              </p>
-            </div>
-
-            <div className="w-full md:w-4/5">
-              <SocialAuth action="Sign In" />
+            <div className="w-full md:w-4/5 flex items-center gap-4">
+              <div className="flex-1 h-px bg-gray-300"></div>
+              <Link
+                to="/signin"
+                className="text-[#001F3F] font-bold hover:underline"
+              >
+                Back to Login
+              </Link>
+              <div className="flex-1 h-px bg-gray-300"></div>
             </div>
           </form>
         </div>
@@ -254,4 +186,4 @@ const SignIn = () => {
   );
 };
 
-export default SignIn;
+export default ChangePassword;

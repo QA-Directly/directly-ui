@@ -1,11 +1,11 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import axios from "axios";
 import AuthPageSideBar from "../components/AuthPageSideBar";
 import SocialAuth from "../components/SocialAuth";
 import { Eye, EyeOff } from "lucide-react";
 import logo from "../assets/logo.png";
-import { Link } from "react-router-dom";
+import bgright from "../assets/bgright.png";
 import zxcvbn from "zxcvbn";
 
 const SignUp = () => {
@@ -48,13 +48,6 @@ const SignUp = () => {
     return Object.keys(newErrors).length === 0;
   };
 
-  const splitName = (fullName) => {
-    const names = fullName.trim().split(/\s+/);
-    const firstName = names[0] || "";
-    const lastName = names.slice(1).join(" ") || "";
-    return { firstName, lastName };
-  };
-
   const handleInputChange = (e) => {
     const { name, value, type, checked } = e.target;
     setFormData({
@@ -63,11 +56,9 @@ const SignUp = () => {
     });
 
     if (name === "password") {
-      const result = zxcvbn(value);
-      setPasswordStrength(result.score);
+      setPasswordStrength(zxcvbn(value).score);
     }
 
-    // Clear errors when user starts typing
     if (errors[name]) {
       setErrors((prev) => ({ ...prev, [name]: "" }));
     }
@@ -82,24 +73,20 @@ const SignUp = () => {
     setApiError("");
 
     try {
-      const { firstName, lastName } = splitName(formData.name);
-
+      const names = formData.name.trim().split(/\s+/);
       const response = await axios.post(
         "https://directly-core.onrender.com/users",
         {
-          firstName,
-          lastName,
+          firstName: names[0] || "",
+          lastName: names.slice(1).join(" ") || "",
           email: formData.email,
           password: formData.password,
         }
       );
 
-      // Store the token if your API returns one
       if (response.data.token) {
         localStorage.setItem("authToken", response.data.token);
       }
-
-      // Redirect to dashboard or verification page
       navigate("/verify-email");
     } catch (error) {
       setApiError(
@@ -113,22 +100,68 @@ const SignUp = () => {
   };
 
   const getPasswordStrengthColor = () => {
-    const colors = ["#ff4444", "#ffbb33", "#00C851", "#33b5e5"];
-    return colors[passwordStrength] || "#ff4444";
+    return (
+      ["#ff4444", "#ffbb33", "#00C851", "#33b5e5"][passwordStrength] ||
+      "#ff4444"
+    );
   };
 
+  const InputField = ({ type, name, placeholder, value, icon: Icon }) => (
+    <div className="w-full flex flex-col items-center">
+      <div className="relative w-full md:w-4/5">
+        <input
+          type={type}
+          name={name}
+          value={value}
+          onChange={handleInputChange}
+          placeholder={placeholder}
+          className={`shadow-md w-full p-3 mb-2 rounded ${
+            errors[name] ? "border-red-500" : ""
+          }`}
+          disabled={isLoading}
+        />
+        {Icon && (
+          <button
+            type="button"
+            className="absolute right-3 top-3 text-gray-400"
+            onClick={
+              name === "password"
+                ? togglePasswordVisibility
+                : toggleCPasswordVisibility
+            }
+          >
+            <Icon size={20} />
+          </button>
+        )}
+      </div>
+      {errors[name] && (
+        <p className="text-red-500 text-sm mt-1 w-full md:w-4/5">
+          {errors[name]}
+        </p>
+      )}
+    </div>
+  );
+
   return (
-    <div className="min-h-screen w-full flex flex-col md:flex-row">
+    <div className="w-screen h-screen flex flex-row md:p-0 py-10">
       <div className="hidden md:flex md:w-1/2">
         <AuthPageSideBar />
       </div>
-      {/* main content */}
-      <div className="w-full md:w-1/2 min-h-screen flex items-center justify-center px-4 md:px-8 py-6 md:py-12">
-        <div className="w-full max-w-lg">
-          <img src={logo} alt="Logo" className="w-32 mb-8 md:hidden" />
-          {/* header */}
-          <div className="text-center mb-8">
-            <h2 className="text-2xl md:text-3xl text-[#6C31F6] font-black">
+      <div className="absolute inset-0 md:hidden">
+        <div className="w-full h-full flex fixed">
+          <div className="w-1/2 bg-white"></div>
+          <div
+            className="w-full h-full bg-cover bg-center"
+            style={{ backgroundImage: `url(${bgright})` }}
+          ></div>
+        </div>
+      </div>
+      <div className="w-full md:w-1/2 h-screen flex items-center justify-center relative">
+        <div className="w-full ">
+          <img src={logo} alt="Logo" className="w-32 mt-24 mb-8 md:hidden" />
+
+          <div className="w-full md:w-4/5 text-center mb-6">
+            <h2 className="text-2xl md:text-3xl text-[#001F3F] font-black">
               Sign Up!
             </h2>
             <p className="text-sm text-gray-600 mt-2">
@@ -137,118 +170,68 @@ const SignUp = () => {
           </div>
 
           {apiError && (
-            <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4">
+            <div className="w-full md:w-4/5 mx-auto bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4">
               {apiError}
             </div>
           )}
 
-          <form className="space-y-4" onSubmit={handleSubmit}>
-            <div>
-              <input
-                type="text"
-                name="name"
-                value={formData.name}
-                onChange={handleInputChange}
-                placeholder="Enter full name"
-                className={`bg-[#97B2DE]/10 w-full p-3 rounded ${
-                  errors.name ? "border-red-500" : ""
-                }`}
-                disabled={isLoading}
-              />
-              {errors.name && (
-                <p className="text-red-500 text-sm mt-1">{errors.name}</p>
-              )}
-            </div>
+          <form
+            className="flex flex-col gap-4 items-center p-4"
+            onSubmit={handleSubmit}
+          >
+            <InputField
+              type="text"
+              name="name"
+              placeholder="Enter full name"
+              value={formData.name}
+            />
 
-            <div>
-              <input
-                type="email"
-                name="email"
-                value={formData.email}
-                onChange={handleInputChange}
-                placeholder="Enter email address"
-                className={`bg-[#97B2DE]/10 w-full p-3 rounded ${
-                  errors.email ? "border-red-500" : ""
-                }`}
-                disabled={isLoading}
-              />
-              {errors.email && (
-                <p className="text-red-500 text-sm mt-1">{errors.email}</p>
-              )}
-            </div>
+            <InputField
+              type="email"
+              name="email"
+              placeholder="Enter email address"
+              value={formData.email}
+            />
 
-            <div className="relative">
-              <input
-                type={isPasswordVisible ? "text" : "password"}
-                name="password"
-                value={formData.password}
-                onChange={handleInputChange}
-                placeholder="Enter Password"
-                className={`bg-[#97B2DE]/10 w-full p-3 rounded ${
-                  errors.password ? "border-red-500" : ""
-                }`}
-                disabled={isLoading}
-              />
-              <button
-                type="button"
-                className="absolute right-3 top-3 text-gray-400"
-                onClick={togglePasswordVisibility}
-              >
-                {isPasswordVisible ? <Eye size={20} /> : <EyeOff size={20} />}
-              </button>
-              {formData.password && (
-                <div className="mt-2">
-                  <div className="h-2 w-full bg-gray-200 rounded">
-                    <div
-                      className="h-full rounded transition-all duration-300"
-                      style={{
-                        width: `${(passwordStrength + 1) * 25}%`,
-                        backgroundColor: getPasswordStrengthColor(),
-                      }}
-                    />
-                  </div>
-                  <p className="text-xs text-gray-600 mt-1">
-                    Password strength:{" "}
-                    {
-                      ["Very Weak", "Weak", "Fair", "Strong", "Very Strong"][
-                        passwordStrength
-                      ]
-                    }
-                  </p>
+            <InputField
+              type={isPasswordVisible ? "text" : "password"}
+              name="password"
+              placeholder="Enter Password"
+              value={formData.password}
+              icon={isPasswordVisible ? Eye : EyeOff}
+            />
+
+            {formData.password && (
+              <div className="w-full md:w-4/5 mt-2">
+                <div className="h-2 w-full bg-gray-200 rounded">
+                  <div
+                    className="h-full rounded transition-all duration-300"
+                    style={{
+                      width: `${(passwordStrength + 1) * 25}%`,
+                      backgroundColor: getPasswordStrengthColor(),
+                    }}
+                  />
                 </div>
-              )}
-              {errors.password && (
-                <p className="text-red-500 text-sm mt-1">{errors.password}</p>
-              )}
-            </div>
-
-            <div className="relative">
-              <input
-                type={isCPasswordVisible ? "text" : "password"}
-                name="confirmPassword"
-                value={formData.confirmPassword}
-                onChange={handleInputChange}
-                placeholder="Confirm Password"
-                className={`bg-[#97B2DE]/10 w-full p-3 rounded ${
-                  errors.confirmPassword ? "border-red-500" : ""
-                }`}
-                disabled={isLoading}
-              />
-              <button
-                type="button"
-                className="absolute right-3 top-3 text-gray-400"
-                onClick={toggleCPasswordVisibility}
-              >
-                {isCPasswordVisible ? <Eye size={20} /> : <EyeOff size={20} />}
-              </button>
-              {errors.confirmPassword && (
-                <p className="text-red-500 text-sm mt-1">
-                  {errors.confirmPassword}
+                <p className="text-xs text-gray-600 mt-1">
+                  Password strength:{" "}
+                  {
+                    ["Very Weak", "Weak", "Fair", "Strong", "Very Strong"][
+                      passwordStrength
+                    ]
+                  }
                 </p>
-              )}
-            </div>
+              </div>
+            )}
 
-            <div className="flex items-start space-x-2 text-sm">
+            <InputField
+              type={isCPasswordVisible ? "text" : "password"}
+              name="confirmPassword"
+              placeholder="Confirm Password"
+              value={formData.confirmPassword}
+              icon={isCPasswordVisible ? Eye : EyeOff}
+            />
+
+            <div className="flex items-start space-x-2 text-sm w-full md:w-4/5">
               <input
                 type="checkbox"
                 name="termsAgreed"
@@ -261,16 +244,13 @@ const SignUp = () => {
                 By clicking "Sign Up" below you agree to the terms & policy
               </p>
             </div>
-            {errors.termsAgreed && (
-              <p className="text-red-500 text-sm">{errors.termsAgreed}</p>
-            )}
 
             <button
               type="submit"
-              className={`w-full p-3 text-white font-bold rounded transition-all ${
+              className={`w-full md:w-4/5 p-3 text-black font-bold rounded transition-all ${
                 formData.termsAgreed && !isLoading
-                  ? "bg-[#6C31F6] hover:bg-[#5826d9]"
-                  : "bg-[#6C31F6]/70 cursor-not-allowed"
+                  ? "bg-[#FF851B] hover:bg-[#FF851B]"
+                  : "bg-[#FF851B]/70 cursor-not-allowed"
               }`}
               disabled={!formData.termsAgreed || isLoading}
             >
@@ -289,12 +269,12 @@ const SignUp = () => {
                       r="10"
                       stroke="currentColor"
                       strokeWidth="4"
-                    ></circle>
+                    />
                     <path
                       className="opacity-75"
                       fill="currentColor"
                       d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                    ></path>
+                    />
                   </svg>
                   Signing Up...
                 </span>
@@ -303,19 +283,19 @@ const SignUp = () => {
               )}
             </button>
 
-            <div className="text-center text-sm mt-4">
+            <div className="text-center text-sm mt-2">
               <p>
                 Already have an account?{" "}
                 <Link
                   to="/signin"
-                  className="text-[#6C31F6] font-bold hover:underline"
+                  className="text-[#001F3F] font-bold hover:underline"
                 >
                   Log In
                 </Link>
               </p>
             </div>
 
-            <div className="w-full mt-6">
+            <div className="w-full md:w-4/5">
               <SocialAuth action="Sign Up" />
             </div>
           </form>

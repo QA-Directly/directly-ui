@@ -1,37 +1,32 @@
 import { useState } from "react";
+import { Link } from "react-router-dom";
 import AuthPageSideBar from "../components/AuthPageSideBar";
 import logo from "../assets/logo.png";
-import { Link } from "react-router-dom";
+import bgright from "../assets/bgright.png";
 
 const ForgotPassword = () => {
   const [email, setEmail] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [message, setMessage] = useState({ text: "", type: "" });
-  const [error, setError] = useState("");
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsLoading(true);
     setMessage({ text: "", type: "" });
-    setError("");
 
     try {
       const response = await fetch(
         "https://directly-core.onrender.com/api/auth/forgot-password",
         {
           method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
+          headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ email }),
         }
       );
 
       const data = await response.json();
-
-      if (!response.ok) {
+      if (!response.ok)
         throw new Error(data.message || "Failed to send reset link");
-      }
 
       setMessage({
         text: "Reset link sent successfully! Please check your email.",
@@ -39,7 +34,6 @@ const ForgotPassword = () => {
       });
       setEmail("");
     } catch (err) {
-      setError(err.message || "An error occurred while sending the reset link");
       setMessage({
         text: err.message || "Failed to send reset link. Please try again.",
         type: "error",
@@ -49,61 +43,81 @@ const ForgotPassword = () => {
     }
   };
 
+  const InputField = ({ type, name, placeholder, value, onChange }) => (
+    <div className="w-full flex flex-col items-center">
+      <div className="relative w-full md:w-4/5">
+        <input
+          type={type}
+          name={name}
+          value={value}
+          onChange={onChange}
+          placeholder={placeholder}
+          className="shadow-md w-full p-3 mb-2 rounded"
+          disabled={isLoading}
+          required
+        />
+      </div>
+    </div>
+  );
+
   return (
-    <div className="min-h-screen w-full flex flex-col md:flex-row">
-      {/* Sidebar */}
+    <div className="w-screen h-screen flex flex-row md:p-0">
       <div className="hidden md:flex md:w-1/2">
         <AuthPageSideBar />
       </div>
+      <div className="absolute inset-0 md:hidden">
+        <div className="w-full h-full flex fixed">
+          <div className="w-1/2 bg-white"></div>
+          <div
+            className="w-full h-full bg-cover bg-center"
+            style={{ backgroundImage: `url(${bgright})` }}
+          ></div>
+        </div>
+      </div>
+      <div className="w-full md:w-1/2 h-screen flex items-center justify-center relative">
+        <div className="w-full">
+          <img src={logo} alt="Logo" className="w-32 fixed top-0 md:hidden" />
 
-      {/* Main Content */}
-      <div className="w-full md:w-1/2 min-h-screen flex items-center justify-center px-4 md:px-8 py-6 md:py-12">
-        <div className="w-full max-w-lg">
-          <img src={logo} alt="Logo" className="w-32 mb-8 md:hidden" />
-
-          {/* Header */}
-          <div className="flex flex-col gap-2 mb-12 justify-center items-center">
-            <h2 className="text-3xl text-[#6C31F6] font-black">
+          <div className="w-full md:w-4/5 text-center mt-14 mb-6">
+            <h2 className="text-2xl md:text-3xl text-[#001F3F] font-black">
               Forgot Password?
             </h2>
-            <p className="text-sm text-gray-600 text-center">
+            <p className="text-sm text-gray-600 mt-2">
               Enter your email and we will send a link to reset your password.
             </p>
           </div>
 
-          {/* Form */}
-          <form className="space-y-4" onSubmit={handleSubmit}>
-            <div className="w-full">
-              <input
-                type="email"
-                placeholder="Enter email address"
-                className="bg-[#97B2DE]/10 w-full p-3 rounded"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
-                disabled={isLoading}
-              />
+          {message.text && (
+            <div
+              className={`w-full md:w-4/5 mx-auto ${
+                message.type === "success"
+                  ? "bg-green-100 border-green-400 text-green-700"
+                  : "bg-red-100 border-red-400 text-red-700"
+              } px-4 py-3 rounded relative mb-4 border`}
+            >
+              {message.text}
             </div>
+          )}
 
-            {message.text && (
-              <p
-                className={`text-sm ${
-                  message.type === "success" ? "text-green-600" : "text-red-600"
-                } mt-2 text-center`}
-              >
-                {message.text}
-              </p>
-            )}
+          <form
+            className="flex flex-col gap-4 items-center p-4"
+            onSubmit={handleSubmit}
+          >
+            <InputField
+              type="email"
+              name="email"
+              placeholder="Enter email address"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+            />
 
             <button
               type="submit"
-              className={`bg-[#6C31F6] w-full p-3 text-white font-bold rounded transition-all
-                ${
-                  isLoading
-                    ? "opacity-70 cursor-not-allowed"
-                    : "hover:bg-[#5826d9]"
-                }
-              `}
+              className={`w-full md:w-4/5 p-3 text-black font-bold rounded transition-all ${
+                isLoading
+                  ? "bg-[#FF851B]/70 cursor-not-allowed"
+                  : "bg-[#FF851B] hover:bg-[#FF851B]"
+              }`}
               disabled={isLoading}
             >
               {isLoading ? (
@@ -121,12 +135,12 @@ const ForgotPassword = () => {
                       r="10"
                       stroke="currentColor"
                       strokeWidth="4"
-                    ></circle>
+                    />
                     <path
                       className="opacity-75"
                       fill="currentColor"
                       d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                    ></path>
+                    />
                   </svg>
                   Sending...
                 </span>
@@ -135,14 +149,16 @@ const ForgotPassword = () => {
               )}
             </button>
 
-            {/* Back to Login Option */}
-            <div className="mt-4 text-sm text-center">
-              <Link
-                to="/signin"
-                className="text-[#6C31F6] font-bold hover:underline"
-              >
-                Back to Login
-              </Link>
+            <div className="text-center text-sm mt-2">
+              <p>
+                Remember your password?{" "}
+                <Link
+                  to="/signin"
+                  className="text-[#001F3F] font-bold hover:underline"
+                >
+                  Sign In
+                </Link>
+              </p>
             </div>
           </form>
         </div>

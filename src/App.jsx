@@ -4,6 +4,8 @@ import SignUp from "./pages/SignUp";
 import ForgotPassword from "./pages/ForgotPassword";
 import VerifyEmail from "./pages/VerifyEmail";
 import VerificationSuccessPage from "./pages/VerificationSuccess";
+import ForgotPasswordSuccess from "./pages/ForgotPasswordSuccess";
+import ChangePassword from "./pages/ChangePassword";
 
 function App() {
   return (
@@ -17,6 +19,8 @@ function App() {
           element={<VerificationSuccessPage />}
         />
         <Route path="/forgot-password" element={<ForgotPassword />} />
+        <Route path="/email-sent" element={<ForgotPasswordSuccess />} />
+        <Route path="/change-password" element={<ChangePassword />} />
       </Routes>
     </>
   );
