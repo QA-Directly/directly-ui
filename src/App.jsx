@@ -6,11 +6,13 @@ import VerifyEmail from "./pages/VerifyEmail";
 import VerificationSuccessPage from "./pages/VerificationSuccess";
 import ForgotPasswordSuccess from "./pages/ForgotPasswordSuccess";
 import ChangePassword from "./pages/ChangePassword";
+import Home from "./Home";
 
 function App() {
   return (
     <>
       <Routes>
+        <Route path="/" element={<Home />} />
         <Route path="/signin" element={<SignIn />} />
         <Route path="/signup" element={<SignUp />} />
         <Route path="/verify-email" element={<VerifyEmail />} />
