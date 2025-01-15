@@ -7,12 +7,14 @@ import VerificationSuccessPage from "./pages/VerificationSuccess";
 import ForgotPasswordSuccess from "./pages/ForgotPasswordSuccess";
 import ChangePassword from "./pages/ChangePassword";
 import Home from "./Home";
+import Products from "./pages/Products";
 
 function App() {
   return (
     <>
       <Routes>
         <Route path="/" element={<Home />} />
+        <Route path="/products" element={<Products />} />
         <Route path="/signin" element={<SignIn />} />
         <Route path="/signup" element={<SignUp />} />
         <Route path="/verify-email" element={<VerifyEmail />} />
