@@ -9,42 +9,39 @@ import bgright from "../assets/bgright.png";
 
 const SignIn = () => {
   const navigate = useNavigate();
-  const [isVisible, setIsVisible] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
     email: "",
     password: "",
     rememberMe: false,
   });
-  const [errors, setErrors] = useState({});
-  const [apiError, setApiError] = useState("");
+  const [error, setError] = useState("");
 
   const validateForm = () => {
-    const newErrors = {};
-    if (!formData.email) newErrors.email = "Email is required.";
-    if (!formData.password) newErrors.password = "Password is required.";
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
+    if (!formData.email) return "Email is required.";
+    if (!formData.password) return "Password is required.";
+    return null;
   };
 
-  const handleInputChange = (e) => {
+  const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
     setFormData({
       ...formData,
       [name]: type === "checkbox" ? checked : value,
     });
-    if (errors[name]) {
-      setErrors((prev) => ({ ...prev, [name]: "" }));
-    }
-    setApiError("");
+    setError("");
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!validateForm()) return;
+    const validationError = validateForm();
+    if (validationError) {
+      setError(validationError);
+      return;
+    }
 
-    setIsLoading(true);
-    setApiError("");
+    setLoading(true);
 
     try {
       const response = await axios.post(
@@ -54,93 +51,51 @@ const SignIn = () => {
           password: formData.password,
         }
       );
+      console.log(response);
 
-      const { token, user } = response.data;
-
-      if (user && !user.isEmailVerified) {
-        try {
-          await axios.post(
-            "https://directly-core.onrender.com/auth/resend-verification",
-            { email: formData.email }
-          );
-          setApiError(
-            "Email not verified. A new verification email has been sent to your inbox."
-          );
-          return;
-        } catch {
-          setApiError(
-            "Email not verified. Please check your inbox for the verification link."
-          );
-          return;
-        }
+      navigate("/products");
+    } catch (err) {
+      if (
+        err.response.data.message == "Email not verified. Please verify email"
+      ) {
+        setError(
+          "Email not verified. Please check your email to verify your account."
+        );
+        console.log("Error: ", err);
+        return;
       }
-
-      if (token) {
-        localStorage.setItem("authToken", token);
-        navigate("/dashboard");
+      if (err.response.data.message == "User not found") {
+        setError("User not found. Proceed to register an account.");
+        console.log("Error: ", err);
+        return;
       }
-    } catch (error) {
-      setApiError(
-        error.response?.data?.message ||
-          error.message ||
-          "An error occurred during sign in"
-      );
     } finally {
-      setIsLoading(false);
+      setLoading(false);
     }
   };
 
-  const InputField = ({ type, name, placeholder, value, icon: Icon }) => (
-    <div className="w-full flex flex-col items-center">
-      <div className="relative w-full md:w-4/5">
-        <input
-          type={type}
-          name={name}
-          value={value}
-          onChange={handleInputChange}
-          placeholder={placeholder}
-          className={`shadow-md w-full p-3 mb-2 rounded ${
-            errors[name] ? "border-red-500" : ""
-          }`}
-          disabled={isLoading}
-        />
-        {Icon && (
-          <button
-            type="button"
-            className="absolute right-3 top-3 text-gray-400"
-            onClick={() => setIsVisible(!isVisible)}
-          >
-            <Icon size={20} />
-          </button>
-        )}
-      </div>
-      {errors[name] && (
-        <p className="text-red-500 text-sm mt-1 w-full md:w-4/5">
-          {errors[name]}
-        </p>
-      )}
-    </div>
-  );
-
   return (
-    <div className="w-screen h-screen flex flex-row md:p-0 ">
+    <div className="min-h-screen flex flex-col md:flex-row">
       <div className="hidden md:flex md:w-1/2">
         <AuthPageSideBar />
       </div>
-      <div className="absolute inset-0 md:hidden">
-        <div className="w-full h-full flex fixed">
+      <div className="md:hidden fixed inset-0">
+        <div className="flex h-full">
           <div className="w-1/2 bg-white"></div>
           <div
-            className="w-full h-full bg-cover bg-center"
+            className="w-4/5 bg-cover bg-center h-full"
             style={{ backgroundImage: `url(${bgright})` }}
           ></div>
         </div>
       </div>
-      <div className="w-full md:w-1/2 h-screen flex items-center justify-center relative">
-        <div className="w-full">
-          <img src={logo} alt="Logo" className="w-32 fixed top-0 md:hidden" />
-
-          <div className="w-full md:w-4/5 text-center mt-14 mb-6">
+      <div className="w-full md:w-1/2 min-h-screen flex items-center justify-center relative">
+        <div className="w-full px-4 md:px-8">
+          <img
+            src={logo}
+            alt="Logo"
+            className="w-32 fixed top-0 left-0 md:hidden z-10"
+          />
+          <div className="w-full flex flex-col items-center pt-20 md:pt-16">
             <h2 className="text-2xl md:text-3xl text-[#001F3F] font-black">
               Welcome back!
             </h2>
@@ -149,46 +104,65 @@ const SignIn = () => {
             </p>
           </div>
 
-          {apiError && (
-            <div className="w-full md:w-4/5 mx-auto bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4">
-              {apiError}
+          {error && (
+            <div className="w-[90%] md:w-4/5 mx-auto text-center bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4">
+              {error}
             </div>
           )}
-
           <form
             className="flex flex-col gap-4 items-center p-4"
             onSubmit={handleSubmit}
           >
-            <InputField
-              type="email"
-              name="email"
-              placeholder="Enter email address"
-              value={formData.email}
-            />
+            <div className="w-full flex flex-col items-center">
+              <div className="relative w-full md:w-4/5">
+                <input
+                  type="email"
+                  name="email"
+                  placeholder="Enter email address"
+                  value={formData.email}
+                  onChange={handleChange}
+                  disabled={loading}
+                  className="shadow-md w-full p-3 mb-2 rounded"
+                />
+              </div>
+            </div>
 
-            <InputField
-              type={isVisible ? "text" : "password"}
-              name="password"
-              placeholder="Enter Password"
-              value={formData.password}
-              icon={isVisible ? Eye : EyeOff}
-            />
+            <div className="w-full flex flex-col items-center">
+              <div className="relative w-full md:w-4/5">
+                <input
+                  type={showPassword ? "text" : "password"}
+                  name="password"
+                  placeholder="Enter Password"
+                  disabled={loading}
+                  value={formData.password}
+                  onChange={handleChange}
+                  className="shadow-md w-full p-3 mb-2 rounded"
+                />
+                <button
+                  className="absolute right-3 top-3 text-gray"
+                  onClick={() => setShowPassword(!showPassword)}
+                  type="button"
+                >
+                  {showPassword ? <Eye size={20} /> : <EyeOff size={20} />}
+                </button>
+              </div>
+            </div>
 
-            <div className="flex justify-between w-full md:w-4/5">
+            <div className="flex flex-col md:flex-row gap-2 justify-between w-full md:w-4/5">
               <div className="flex items-start space-x-2 text-sm">
                 <input
                   type="checkbox"
                   name="rememberMe"
                   checked={formData.rememberMe}
-                  onChange={handleInputChange}
+                  onChange={handleChange}
                   className="mt-1"
-                  disabled={isLoading}
+                  disabled={loading}
                 />
                 <p className="text-gray-600">Remember me</p>
               </div>
               <Link
                 to="/forgot-password"
-                className="text-[#6C31F6] text-sm font-bold hover:underline"
+                className="text-[#6C31F6] text-sm font-bold hover:underline text-right"
               >
                 Forgot Password?
               </Link>
@@ -197,13 +171,13 @@ const SignIn = () => {
             <button
               type="submit"
               className={`w-full md:w-4/5 p-3 text-black font-bold rounded transition-all ${
-                isLoading
+                loading
                   ? "bg-[#FF851B]/70 cursor-not-allowed"
                   : "bg-[#FF851B] hover:bg-[#FF851B]"
               }`}
-              disabled={isLoading}
+              disabled={loading}
             >
-              {isLoading ? (
+              {loading ? (
                 <span className="flex items-center justify-center">
                   <svg
                     className="animate-spin -ml-1 mr-3 h-5 w-5 text-white"

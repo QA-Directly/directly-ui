@@ -1,79 +1,58 @@
 import { useState } from "react";
-import { useNavigate, Link } from "react-router-dom";
-import axios from "axios";
+import { useNavigate, Link, data } from "react-router-dom";
+import { Eye, EyeOff } from "lucide-react";
 import AuthPageSideBar from "../components/AuthPageSideBar";
 import SocialAuth from "../components/SocialAuth";
-import { Eye, EyeOff } from "lucide-react";
 import logo from "../assets/logo.png";
 import bgright from "../assets/bgright.png";
-import zxcvbn from "zxcvbn";
+import axios from "axios";
 
 const SignUp = () => {
   const navigate = useNavigate();
-  const [isPasswordVisible, setIsPasswordVisible] = useState(false);
-  const [isCPasswordVisible, setIsCPasswordVisible] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [formData, setFormData] = useState({
-    name: "",
+    fullName: "",
     email: "",
     password: "",
     confirmPassword: "",
-    termsAgreed: false,
+    agreedToTerms: false,
   });
-  const [errors, setErrors] = useState({});
-  const [passwordStrength, setPasswordStrength] = useState(0);
-  const [apiError, setApiError] = useState("");
 
-  const togglePasswordVisibility = () =>
-    setIsPasswordVisible(!isPasswordVisible);
-  const toggleCPasswordVisibility = () =>
-    setIsCPasswordVisible(!isCPasswordVisible);
-
-  const validateForm = () => {
-    const newErrors = {};
-    if (!formData.name) newErrors.name = "Full name is required.";
-    if (!formData.email) newErrors.email = "Email is required.";
-    if (!formData.password) newErrors.password = "Password is required.";
-    if (formData.password !== formData.confirmPassword) {
-      newErrors.confirmPassword = "Passwords do not match.";
-    }
-    if (!formData.termsAgreed) {
-      newErrors.termsAgreed = "You must agree to the terms.";
-    }
-    if (passwordStrength < 2) {
-      newErrors.password =
-        "Password is too weak. Please choose a stronger password.";
-    }
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
+  const handleChange = (e) => {
+    const { name, value, type, checked } = e.target;
+    setFormData((prev) => ({
+      ...prev,
+      [name]: type === "checkbox" ? checked : value,
+    }));
+    setError("");
   };
 
-  const handleInputChange = (e) => {
-    const { name, value, type, checked } = e.target;
-    setFormData({
-      ...formData,
-      [name]: type === "checkbox" ? checked : value,
-    });
-
-    if (name === "password") {
-      setPasswordStrength(zxcvbn(value).score);
-    }
-
-    if (errors[name]) {
-      setErrors((prev) => ({ ...prev, [name]: "" }));
-    }
-    setApiError("");
+  const validateForm = () => {
+    if (!formData.fullName) return "Name is required";
+    if (!formData.email) return "Email is required";
+    if (!formData.email.includes("@")) return "Invalid email format";
+    if (!formData.password) return "Password is required";
+    if (formData.password.length < 8)
+      return "Password must be at least 8 characters";
+    if (formData.password !== formData.confirmPassword)
+      return "Passwords don't match";
+    if (!formData.agreedToTerms) return "Please agree to terms and policy";
+    return null;
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!validateForm()) return;
-
-    setIsLoading(true);
-    setApiError("");
-
+    const validationError = validateForm();
+    if (validationError) {
+      setError(validationError);
+      return;
+    }
+    setLoading(true);
     try {
-      const names = formData.name.trim().split(/\s+/);
+      const names = formData.fullName.trim().split(/\s+/);
       const response = await axios.post(
         "https://directly-core.onrender.com/users",
         {
@@ -84,161 +63,141 @@ const SignUp = () => {
         }
       );
 
-      if (response.data.token) {
-        localStorage.setItem("authToken", response.data.token);
+      if (response.status == 201) {
+        console.log("Success");
+        navigate("/verify-email");
       }
-      navigate("/verify-email");
-    } catch (error) {
-      setApiError(
-        error.response?.data?.message ||
-          error.message ||
-          "An error occurred during registration"
+    } catch (err) {
+      setError(
+        err.response?.data?.message || err.message || "Registration failed"
       );
     } finally {
-      setIsLoading(false);
+      setLoading(false);
     }
   };
 
-  const getPasswordStrengthColor = () => {
-    return (
-      ["#ff4444", "#ffbb33", "#00C851", "#33b5e5"][passwordStrength] ||
-      "#ff4444"
-    );
-  };
-
-  const InputField = ({ type, name, placeholder, value, icon: Icon }) => (
-    <div className="w-full flex flex-col items-center">
-      <div className="relative w-full md:w-4/5">
-        <input
-          type={type}
-          name={name}
-          value={value}
-          onChange={handleInputChange}
-          placeholder={placeholder}
-          className={`shadow-md w-full p-3 mb-2 rounded ${
-            errors[name] ? "border-red-500" : ""
-          }`}
-          disabled={isLoading}
-        />
-        {Icon && (
-          <button
-            type="button"
-            className="absolute right-3 top-3 text-gray-400"
-            onClick={
-              name === "password"
-                ? togglePasswordVisibility
-                : toggleCPasswordVisibility
-            }
-          >
-            <Icon size={20} />
-          </button>
-        )}
-      </div>
-      {errors[name] && (
-        <p className="text-red-500 text-sm mt-1 w-full md:w-4/5">
-          {errors[name]}
-        </p>
-      )}
-    </div>
-  );
-
   return (
-    <div className="w-screen h-screen flex flex-row md:p-0 py-10">
+    <div className="min-h-screen flex flex-col md:flex-row">
       <div className="hidden md:flex md:w-1/2">
         <AuthPageSideBar />
       </div>
-      <div className="absolute inset-0 md:hidden">
-        <div className="w-full h-full flex fixed">
+      <div className="md:hidden fixed inset-0">
+        <div className="flex h-full">
           <div className="w-1/2 bg-white"></div>
           <div
-            className="w-full h-full bg-cover bg-center"
+            className="w-4/5 bg-cover bg-center h-full"
             style={{ backgroundImage: `url(${bgright})` }}
           ></div>
         </div>
       </div>
-      <div className="w-full md:w-1/2 h-screen flex items-center justify-center relative">
-        <div className="w-full ">
-          <img src={logo} alt="Logo" className="w-32 mt-24 mb-8 md:hidden" />
-
-          <div className="w-full md:w-4/5 text-center mb-6">
+      <div className="w-full md:w-1/2 min-h-screen flex items-center justify-center relative">
+        <div className="w-full px-4 md:px-8">
+          <img
+            src={logo}
+            alt="Logo"
+            className="w-32 fixed top-0 left-0 md:hidden z-10"
+          />
+          <div className="w-full flex flex-col items-center pt-20 md:pt-16">
             <h2 className="text-2xl md:text-3xl text-[#001F3F] font-black">
-              Sign Up!
+              Welcome back!
             </h2>
             <p className="text-sm text-gray-600 mt-2">
               Enter details below to Sign Up
             </p>
           </div>
 
-          {apiError && (
-            <div className="w-full md:w-4/5 mx-auto bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4">
-              {apiError}
+          {error && (
+            <div className="w-full md:w-4/5 mx-auto text-center  bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative my-4">
+              {error}
             </div>
           )}
 
           <form
-            className="flex flex-col gap-4 items-center p-4"
+            className="flex flex-col gap-4 items-center p-4 "
             onSubmit={handleSubmit}
           >
-            <InputField
-              type="text"
-              name="name"
-              placeholder="Enter full name"
-              value={formData.name}
-            />
-
-            <InputField
-              type="email"
-              name="email"
-              placeholder="Enter email address"
-              value={formData.email}
-            />
-
-            <InputField
-              type={isPasswordVisible ? "text" : "password"}
-              name="password"
-              placeholder="Enter Password"
-              value={formData.password}
-              icon={isPasswordVisible ? Eye : EyeOff}
-            />
-
-            {formData.password && (
-              <div className="w-full md:w-4/5 mt-2">
-                <div className="h-2 w-full bg-gray-200 rounded">
-                  <div
-                    className="h-full rounded transition-all duration-300"
-                    style={{
-                      width: `${(passwordStrength + 1) * 25}%`,
-                      backgroundColor: getPasswordStrengthColor(),
-                    }}
-                  />
-                </div>
-                <p className="text-xs text-gray-600 mt-1">
-                  Password strength:{" "}
-                  {
-                    ["Very Weak", "Weak", "Fair", "Strong", "Very Strong"][
-                      passwordStrength
-                    ]
-                  }
-                </p>
+            <div className="w-full flex flex-col items-center">
+              <div className="relative w-full md:w-4/5">
+                <input
+                  type="text"
+                  name="fullName"
+                  placeholder="Enter full name"
+                  value={formData.fullName}
+                  onChange={handleChange}
+                  className="shadow-md w-full p-3 mb-2 rounded"
+                  disabled={loading}
+                />
               </div>
-            )}
+            </div>
 
-            <InputField
-              type={isCPasswordVisible ? "text" : "password"}
-              name="confirmPassword"
-              placeholder="Confirm Password"
-              value={formData.confirmPassword}
-              icon={isCPasswordVisible ? Eye : EyeOff}
-            />
+            <div className="w-full flex flex-col items-center">
+              <div className="relative w-full md:w-4/5">
+                <input
+                  type="email"
+                  name="email"
+                  placeholder="Enter email address"
+                  value={formData.email}
+                  onChange={handleChange}
+                  className="shadow-md w-full p-3 mb-2 rounded"
+                  disabled={loading}
+                />
+              </div>
+            </div>
+
+            <div className="w-full flex flex-col items-center">
+              <div className="relative w-full md:w-4/5">
+                <input
+                  type={showPassword ? "text" : "password"}
+                  name="password"
+                  placeholder="Enter Password"
+                  value={formData.password}
+                  onChange={handleChange}
+                  className="shadow-md w-full p-3 mb-2 rounded"
+                  disabled={loading}
+                />
+                <button
+                  type="button"
+                  className="absolute right-3 top-3 text-gray-400"
+                  onClick={() => setShowPassword(!showPassword)}
+                >
+                  {showPassword ? <Eye size={20} /> : <EyeOff size={20} />}
+                </button>
+              </div>
+            </div>
+
+            <div className="w-full flex flex-col items-center">
+              <div className="relative w-full md:w-4/5">
+                <input
+                  type={showConfirmPassword ? "text" : "password"}
+                  name="confirmPassword"
+                  placeholder="Confirm Password"
+                  value={formData.confirmPassword}
+                  onChange={handleChange}
+                  className="shadow-md w-full p-3 mb-2 rounded"
+                  disabled={loading}
+                />
+                <button
+                  type="button"
+                  className="absolute right-3 top-3 text-gray-400"
+                  onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                >
+                  {showConfirmPassword ? (
+                    <Eye size={20} />
+                  ) : (
+                    <EyeOff size={20} />
+                  )}
+                </button>
+              </div>
+            </div>
 
             <div className="flex items-start space-x-2 text-sm w-full md:w-4/5">
               <input
                 type="checkbox"
-                name="termsAgreed"
-                checked={formData.termsAgreed}
-                onChange={handleInputChange}
+                name="agreedToTerms"
+                checked={formData.agreedToTerms}
+                onChange={handleChange}
                 className="mt-1"
-                disabled={isLoading}
+                disabled={loading}
               />
               <p className="text-gray-600">
                 By clicking "Sign Up" below you agree to the terms & policy
@@ -248,13 +207,13 @@ const SignUp = () => {
             <button
               type="submit"
               className={`w-full md:w-4/5 p-3 text-black font-bold rounded transition-all ${
-                formData.termsAgreed && !isLoading
+                formData.agreedToTerms && !loading
                   ? "bg-[#FF851B] hover:bg-[#FF851B]"
                   : "bg-[#FF851B]/70 cursor-not-allowed"
               }`}
-              disabled={!formData.termsAgreed || isLoading}
+              disabled={!formData.agreedToTerms || loading}
             >
-              {isLoading ? (
+              {loading ? (
                 <span className="flex items-center justify-center">
                   <svg
                     className="animate-spin -ml-1 mr-3 h-5 w-5 text-white"

@@ -1,13 +1,13 @@
 import { MapPin, Search, SlidersVertical } from "lucide-react";
 import { Link } from "react-router-dom";
-import Slider from "./components/Slider";
+import Slider from "../components/Slider";
 import {
   FaFacebook,
   FaInstagram,
   FaLinkedin,
   FaXTwitter,
 } from "react-icons/fa6";
-import Footer from "./components/Footer";
+import Footer from "../components/Footer";
 
 const Home = () => {
   return (
@@ -170,9 +170,12 @@ const Home = () => {
                 Need a Service Provider?
               </h2>
               <p>Sign up today to connect with trusted service provider</p>
-              <button className="bg-[#FF851B] text-[#001F3F] p-2 rounded-lg font-bold w-40">
+              <Link
+                to="/signup"
+                className="bg-[#FF851B] text-[#001F3F] p-2 rounded-lg font-bold w-40"
+              >
                 Sign Up
-              </button>
+              </Link>
             </div>
             <div className="hidden md:flex w-1/2 h-1/2 p-8">
               <img src="./directly4.png" className="w-1/4 md:w-full" alt="" />

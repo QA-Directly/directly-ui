@@ -6,8 +6,8 @@ import VerifyEmail from "./pages/VerifyEmail";
 import VerificationSuccessPage from "./pages/VerificationSuccess";
 import ForgotPasswordSuccess from "./pages/ForgotPasswordSuccess";
 import ChangePassword from "./pages/ChangePassword";
-import Home from "./Home";
 import Products from "./pages/Products";
+import Home from "./pages/Home";
 
 function App() {
   return (
