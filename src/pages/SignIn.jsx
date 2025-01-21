@@ -6,9 +6,13 @@ import SocialAuth from "../components/SocialAuth";
 import { Eye, EyeOff } from "lucide-react";
 import logo from "../assets/logo.png";
 import bgright from "../assets/bgright.png";
+import { useAuth } from "../Contexts/AuthContext";
 
 const SignIn = () => {
   const navigate = useNavigate();
+  const { login } = useAuth();
+
+  // State variables
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
@@ -18,12 +22,14 @@ const SignIn = () => {
   });
   const [error, setError] = useState("");
 
+  // Form validation
   const validateForm = () => {
     if (!formData.email) return "Email is required.";
     if (!formData.password) return "Password is required.";
     return null;
   };
 
+  // Handle input changes
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
     setFormData({
@@ -33,6 +39,7 @@ const SignIn = () => {
     setError("");
   };
 
+  // Handle form submission
   const handleSubmit = async (e) => {
     e.preventDefault();
     const validationError = validateForm();
@@ -51,9 +58,11 @@ const SignIn = () => {
           password: formData.password,
         }
       );
-      console.log(response);
 
-      navigate("/products");
+      const token = response.data.id;
+      login(token);
+
+      navigate("/");
     } catch (err) {
       if (
         err.response.data.message == "Email not verified. Please verify email"
@@ -76,9 +85,11 @@ const SignIn = () => {
 
   return (
     <div className="min-h-screen flex flex-col md:flex-row">
+      {/* Sidebar for larger screens */}
       <div className="hidden md:flex md:w-1/2">
         <AuthPageSideBar />
       </div>
+      {/* Background image for smaller screens */}
       <div className="md:hidden fixed inset-0">
         <div className="flex h-full">
           <div className="w-1/2 bg-white"></div>
@@ -88,6 +99,7 @@ const SignIn = () => {
           ></div>
         </div>
       </div>
+      {/* Main content */}
       <div className="w-full md:w-1/2 min-h-screen flex items-center justify-center relative">
         <div className="w-full px-4 md:px-8">
           <img
@@ -104,11 +116,13 @@ const SignIn = () => {
             </p>
           </div>
 
+          {/* Display error message if there is an error */}
           {error && (
             <div className="w-[90%] md:w-4/5 mx-auto text-center bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4">
               {error}
             </div>
           )}
+          {/* SignIn form */}
           <form
             className="flex flex-col gap-4 items-center p-4"
             onSubmit={handleSubmit}

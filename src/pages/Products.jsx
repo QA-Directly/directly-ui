@@ -18,12 +18,32 @@ import {
   Plus,
   Star,
   StarHalf,
+  LogOut,
+  Menu,
+  X,
 } from "lucide-react";
 
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import Footer from "../components/Footer";
+import { useAuth } from "../Contexts/AuthContext";
+import { useState } from "react";
 
 const Products = () => {
+  const { logout } = useAuth();
+  const navigate = useNavigate();
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+
+  // handle menu toggle (mobile)
+  const toggleMenu = () => {
+    setIsMenuOpen(!isMenuOpen);
+  };
+
+  // handle logout
+  const handleLogOut = () => {
+    logout();
+    navigate("/");
+  };
+
   const categories = [
     { name: "Health & Beauty Services", icon: Heart },
     { name: "Building & Trade Services", icon: Scissors },
@@ -114,66 +134,135 @@ const Products = () => {
   };
   return (
     <div className="bg-[#EDEBEB] flex flex-col justify-between">
-      <header className="bg-[#001F3F] roboto w-full py-2 md:py-5 px-2 md:px-4 flex flex-col md:flex-row justify-between items-center">
-        <div className="flex flex-row justify-between items-center">
-          <div className="flex flex-row">
+      <header className="bg-[#001F3F] w-full p-4 flex flex-col gap-4 md:flex-row md:justify-between md:items-center">
+        {/* Logo and Mobile Menu Section */}
+        <div className="flex justify-between items-center w-full md:w-auto">
+          <div className="flex items-center gap-2">
             <img
               src="./directlyicon.png"
-              className="w-8 h-8 md:w-16 md:h-16 "
-              alt=""
+              className="w-8 h-8 md:w-12 md:h-12"
+              alt="Directly Icon"
             />
             <img
               src="./directlyname.png"
-              className="md:ml-4 w-[50%] md:w-full"
-              alt=""
+              className="w-32 md:w-40"
+              alt="Directly Name"
             />
           </div>
-          <img src="./menu.svg" className="md:hidden" alt="" />
+          <button
+            className="md:hidden text-[#CBE9F4] hover:text-[#FF851B] transition-colors"
+            onClick={toggleMenu}
+            aria-label={isMenuOpen ? "Close menu" : "Open menu"}
+          >
+            {isMenuOpen ? (
+              <X className="w-6 h-6" />
+            ) : (
+              <Menu className="w-6 h-6" />
+            )}
+          </button>
         </div>
-        <div className="w-1/3  flex flex-row justify-between items-center md:px-4  rounded-full">
+
+        {/* Search Bar Section */}
+        <div className="flex w-full md:w-1/3">
           <input
             type="text"
             placeholder="I am looking for ..."
             className="bg-[#CBE9F4] w-full p-2 px-4 rounded-l-2xl outline-none"
           />
-          <div className="flex flex-row justify-between items-center  ">
-            <div className="bg-[#CBE9F4] text-[#001F3F] p-2 md:px-4 rounded-r-2xl ">
-              <Search />
-            </div>
+          <div className="bg-[#CBE9F4] text-[#001F3F] p-2 rounded-r-2xl">
+            <Search className="w-6 h-6" />
           </div>
         </div>
-        <div className="hidden w-[35%] md:flex flex-row justify-between items-center px-10 ">
-          <div className="flex flex-col md:flex-row justify-between items-center gap-8 mb-4 md:mb-0">
+
+        {/* Navigation and Buttons Section - Desktop */}
+        <div className="hidden md:flex items-center gap-6">
+          <nav className="flex items-center gap-6">
             <Link
               to="/profile"
-              className="text-[#CBE9F4] hover:text-[#FF851B] text-lg md:text-xl font-bold"
+              className="text-[#CBE9F4] hover:text-[#FF851B] transition-colors"
             >
-              <User />
+              <User className="w-6 h-6" />
             </Link>
             <Link
               to="/profile"
-              className="text-[#CBE9F4] hover:text-[#FF851B] text-lg md:text-xl font-bold"
+              className="text-[#CBE9F4] hover:text-[#FF851B] transition-colors"
             >
-              <Heart />
+              <Heart className="w-6 h-6" />
             </Link>
             <Link
               to="/profile"
-              className="text-[#CBE9F4] hover:text-[#FF851B] text-lg md:text-xl font-bold"
+              className="text-[#CBE9F4] hover:text-[#FF851B] transition-colors"
             >
-              <Bell />
+              <Bell className="w-6 h-6" />
             </Link>
             <Link
               to="/profile"
-              className="text-[#CBE9F4] hover:text-[#FF851B] text-lg md:text-xl font-bold"
+              className="text-[#CBE9F4] hover:text-[#FF851B] transition-colors"
             >
-              <MessageCircle />
+              <MessageCircle className="w-6 h-6" />
             </Link>
-          </div>
-          <button className="bg-[#FF851B] text-[#001F3F] font-bold p-2 md:px-4 rounded-lg ">
+          </nav>
+
+          <button className="bg-[#FF851B] text-[#001F3F] font-bold px-4 py-2 rounded-lg hover:bg-[#ff9642] transition-colors">
             Provide a service
           </button>
+          <button
+            onClick={handleLogOut}
+            className="bg-[#CBE9F4] text-[#001F3F] font-bold px-4 py-2 rounded-lg hover:bg-[#a8d9e9] transition-colors"
+          >
+            <LogOut className="w-6 h-6" />
+          </button>
+        </div>
+
+        {/* Mobile Navigation Menu - Toggleable */}
+        <div
+          className={`md:hidden flex flex-col gap-4 transition-all duration-300 ease-in-out ${
+            isMenuOpen
+              ? "max-h-96 opacity-100"
+              : "max-h-0 opacity-0 overflow-hidden"
+          }`}
+        >
+          <nav className="flex justify-center gap-8">
+            <Link
+              to="/profile"
+              className="text-[#CBE9F4] hover:text-[#FF851B] transition-colors"
+            >
+              <User className="w-6 h-6" />
+            </Link>
+            <Link
+              to="/profile"
+              className="text-[#CBE9F4] hover:text-[#FF851B] transition-colors"
+            >
+              <Heart className="w-6 h-6" />
+            </Link>
+            <Link
+              to="/profile"
+              className="text-[#CBE9F4] hover:text-[#FF851B] transition-colors"
+            >
+              <Bell className="w-6 h-6" />
+            </Link>
+            <Link
+              to="/profile"
+              className="text-[#CBE9F4] hover:text-[#FF851B] transition-colors"
+            >
+              <MessageCircle className="w-6 h-6" />
+            </Link>
+          </nav>
+
+          <div className="flex flex-col gap-3">
+            <button className="bg-[#FF851B] text-[#001F3F] font-bold py-2 rounded-lg hover:bg-[#ff9642] transition-colors">
+              Provide a service
+            </button>
+            <button
+              onClick={handleLogOut}
+              className="bg-[#CBE9F4] text-[#001F3F] font-bold py-2 rounded-lg hover:bg-[#a8d9e9] transition-colors flex items-center justify-center"
+            >
+              <LogOut className="w-6 h-6" />
+            </button>
+          </div>
         </div>
       </header>
+
       <div className=" bg-white flex flex-row justify-center items-center gap-14 p-2 md:p-8 ">
         <div className="hidden md:flex relative top-16 right-10">
           <img src="./leftLine.svg" className="w-10rem" alt="" />
@@ -216,19 +305,20 @@ const Products = () => {
           <img src="./rightLine.svg" alt="" />
         </div>
       </div>
-      <div className="flex flex-row gap-8 p-8">
-        <div className="w-1/4 bg-white p-4 rounded-lg flex flex-col justify-between">
+
+      <div className="flex flex-col md:flex-row gap-8 p-4 md:p-8">
+        <div className="w-full md:w-1/4 bg-white p-4 rounded-lg flex flex-col gap-4 justify-between">
           {categories.map((category, index) => (
             <div
               key={index}
-              className="flex flex-row gap-6 items-center text-sm hover:text-[#FF851B] font-medium"
+              className="flex flex-row text-sm gap-4 md:gap-6 items-center hover:text-[#FF851B] font-medium"
             >
               <category.icon />
               <p className="">{category.name}</p>
             </div>
           ))}
         </div>
-        <div className="w-1/2">
+        <div className="w-full md:w-1/2">
           <img
             src="./heroImage.png"
             alt=""
@@ -238,13 +328,14 @@ const Products = () => {
             Fashion Designer
           </p>
         </div>
-        <div className="w-1/5 flex flex-col justify-between items-center gap-8">
-          <div className="w-[80%] h-1/2 bg-[#CBE9F4] rounded-lg p-2 text-center flex flex-col justify-around shadow-md">
+
+        <div className="hidden w-full md:w-1/5 md:*:flex flex-col justify-between items-center gap-8">
+          <div className="w-full md:w-[80%] h-1/2 bg-[#CBE9F4] rounded-lg p-2 text-center flex flex-col justify-around shadow-md">
             <p className="text-2xl font-bold">How to use Directly ?</p>
             <p>Follow these steps</p>
             <Link>View more</Link>
           </div>
-          <div className="w-[80%] h-1/2 bg-[#FF851B] pt-4 p-2 rounded-lg border-2 flex flex-col justify-around shadow-md">
+          <div className="w-full md:w-[80%] h-1/2 bg-[#FF851B] pt-4 p-2 rounded-lg border-2 flex flex-col justify-around shadow-md">
             <p className="text-xl text-white font-bold text-center">
               Want to provide a service
             </p>
@@ -254,18 +345,21 @@ const Products = () => {
           </div>
         </div>
       </div>
-      <div className="w-full flex flex-col p-8">
-        <div className="w-full flex flex-row justify-between items-center m-auto bg-[#86DFFF] px-8 py-2 rounded-t-lg">
-          <h2 className="text-xl font-medium">Trending Service Providers</h2>
-          <Link>See all</Link>
+
+      <div className="w-full flex flex-col md:p-8">
+        <div className="w-full flex flex-row justify-between items-between m-auto bg-[#86DFFF] px-4 md:px-8 py-2 rounded-t-lg">
+          <h2 className=" text-xs md:text-xl font-normal md:font-medium">
+            Trending Service Providers
+          </h2>
+          <Link className="text-xs ">See all</Link>
         </div>
-        <div className="bg-white grid grid-cols-4 justify-between items-center m-auto gap-20 px-8 rounded-b-lg shadow-md p-8 py-12">
+        <div className="bg-white grid grid-cols-1 md:grid-cols-4 justify-between items-center m-auto gap-10 md:gap-20 px-2 md:px-8 rounded-b-lg shadow-md py-8 md:py-12">
           {servicesProviders.map((serviceProvider, index) => (
             <div
               key={index}
-              className="flex flex-col gap-2 shadow-sm hover:shadow-md p-4 rounded-lg"
+              className="w-full border flex flex-col gap-2 shadow-sm hover:shadow-md p-2 pb-4 md:p-4 rounded-lg"
             >
-              <img src="./heroImage.png" />
+              <img src="./heroImage.png" className="w-full rounded-lg" />
               <p className="font-bold text-xl">{serviceProvider.name}</p>
               <p>{serviceProvider.service}</p>
               <div className="flex flex-col  items-start gap-4">

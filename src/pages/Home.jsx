@@ -7,55 +7,149 @@ import {
   FaLinkedin,
   FaXTwitter,
 } from "react-icons/fa6";
+import { Menu, X } from "lucide-react";
 import Footer from "../components/Footer";
+import { useState } from "react";
 
 const Home = () => {
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+
+  // handle menu toggle (mobile)
+  const toggleMenu = () => {
+    setIsMenuOpen(!isMenuOpen);
+  };
+
   return (
     <div className="bg-[#EDEBEB] flex flex-col justify-between">
-      <header className="bg-[#001F3F] roboto w-full py-2 md:py-5 px-2 md:px-4 flex flex-col md:flex-row justify-between items-center">
-        <div className="w-full flex flex-row justify-between items-center">
-          <div className="flex flex-row">
-            <img
-              src="./directlyicon.png"
-              className="w-8 h-8 md:w-16 md:h-16 "
-              alt=""
-            />
-            <img
-              src="./directlyname.png"
-              className="md:ml-4 w-[50%] md:w-full"
-              alt=""
-            />
-          </div>
-          <img src="./menu.svg" className="md:hidden" alt="" />
-        </div>
-        <div className="hidden w-full md:flex flex-row justify-center items-center gap-8">
-          <div className="w-full flex flex-col md:flex-row justify-between items-center gap-4 md:gap-10 mb-4 md:mb-0">
-            <Link to="/about" className="text-white">
-              About Us
-            </Link>
-            <Link to="/services" className="text-white">
-              Services
-            </Link>
-            <Link to="/how-it-works" className="text-white">
-              How it Works
-            </Link>
-            <Link to="/blogs" className="text-white">
-              Blogs
-            </Link>
-          </div>
-          <div className="flex flex-col md:flex-row justify-between items-center gap-4 md:gap-10">
-            <Link
-              to="/signin"
-              className="text-white hover:text-[#FF851B] text-md font-bold"
+      <header className="bg-[#001F3F] w-full py-4 px-4">
+        {/* Main header container */}
+        <div className="flex flex-col w-full gap-4">
+          {/* Top row - Logo and mobile menu */}
+          <div className="flex justify-between items-center">
+            {/* Logo container */}
+            <div className="flex items-center gap-2">
+              <img
+                src="./directlyicon.png"
+                className="w-8 h-8 md:w-12 md:h-12"
+                alt="Directly Icon"
+              />
+              <img
+                src="./directlyname.png"
+                className="w-32 md:w-40"
+                alt="Directly Name"
+              />
+            </div>
+
+            {/* Mobile menu button */}
+            <button
+              className="md:hidden text-white hover:text-[#FF851B] transition-colors"
+              onClick={toggleMenu}
+              aria-label={isMenuOpen ? "Close menu" : "Open menu"}
             >
-              Login
-            </Link>
-            <Link
-              to="/signup"
-              className="text-[#001F3F] bg-[#FF851B] hover:bg-[#fff] rounded-lg w-full md:w-40 p-2 text-md font-bold text-center"
-            >
-              Sign Up
-            </Link>
+              {isMenuOpen ? (
+                <X className="w-6 h-6" />
+              ) : (
+                <Menu className="w-6 h-6" />
+              )}
+            </button>
+
+            {/* Desktop navigation */}
+            <div className="hidden md:flex items-center gap-6">
+              <nav className="flex items-center gap-8">
+                <Link to="/about" className="text-white hover:text-[#FF851B]">
+                  About Us
+                </Link>
+                <Link
+                  to="/services"
+                  className="text-white hover:text-[#FF851B]"
+                >
+                  Services
+                </Link>
+                <Link
+                  to="/how-it-works"
+                  className="text-white hover:text-[#FF851B]"
+                >
+                  How it Works
+                </Link>
+                <Link to="/blogs" className="text-white hover:text-[#FF851B]">
+                  Blogs
+                </Link>
+              </nav>
+              <div className="flex items-center gap-4">
+                <Link
+                  to="/signin"
+                  className="text-white hover:text-[#FF851B] font-medium"
+                >
+                  Login
+                </Link>
+                <Link
+                  to="/signup"
+                  className="bg-[#FF851B] text-[#001F3F] px-6 py-2 rounded-lg hover:bg-[#ff9642] transition-colors font-medium"
+                >
+                  Sign Up
+                </Link>
+              </div>
+            </div>
+          </div>
+
+          {/* Search bar - shown on both mobile and desktop */}
+          <div className="flex w-full md:w-2/3 lg:w-1/2 mx-auto">
+            <div className="flex w-full">
+              <input
+                type="text"
+                placeholder="I am looking for ..."
+                className="bg-[#CBE9F4] w-full p-2 px-4 rounded-l-2xl outline-none"
+              />
+              <div className="flex">
+                <button className="bg-[#CBE9F4] text-[#001F3F] px-3 hover:bg-[#a8d9e9] transition-colors">
+                  <MapPin className="w-5 h-5" />
+                </button>
+                <button className="bg-[#FF851B] text-white px-3 rounded-r-2xl hover:bg-[#ff9642] transition-colors">
+                  <Search className="w-5 h-5" />
+                </button>
+              </div>
+            </div>
+          </div>
+
+          {/* Mobile menu */}
+          <div
+            className={`md:hidden transition-all duration-300 ease-in-out ${
+              isMenuOpen
+                ? "max-h-96 opacity-100"
+                : "max-h-0 opacity-0 overflow-hidden"
+            }`}
+          >
+            <nav className="flex flex-col gap-4 py-4">
+              <Link to="/about" className="text-white hover:text-[#FF851B]">
+                About Us
+              </Link>
+              <Link to="/services" className="text-white hover:text-[#FF851B]">
+                Services
+              </Link>
+              <Link
+                to="/how-it-works"
+                className="text-white hover:text-[#FF851B]"
+              >
+                How it Works
+              </Link>
+              <Link to="/blogs" className="text-white hover:text-[#FF851B]">
+                Blogs
+              </Link>
+            </nav>
+            <div className="flex flex-col gap-4 py-4">
+              <Link
+                to="/signin"
+                className="text-white hover:text-[#FF851B] text-center font-medium"
+              >
+                Login
+              </Link>
+              <Link
+                to="/signup"
+                className="bg-[#FF851B] text-[#001F3F] py-2 rounded-lg hover:bg-[#ff9642] transition-colors text-center font-medium"
+              >
+                Sign Up
+              </Link>
+            </div>
           </div>
         </div>
       </header>
