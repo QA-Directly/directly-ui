@@ -10,6 +10,7 @@ import {
 import { Menu, X } from "lucide-react";
 import Footer from "../components/Footer";
 import { useState } from "react";
+import SearchBar from "../components/SearchBar";
 
 const Home = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -22,12 +23,10 @@ const Home = () => {
   return (
     <div className="bg-[#EDEBEB] flex flex-col justify-between">
       <header className="bg-[#001F3F] w-full py-4 px-4">
-        {/* Main header container */}
         <div className="flex flex-col w-full gap-4">
-          {/* Top row - Logo and mobile menu */}
-          <div className="flex justify-between items-center">
+          <div className="flex items-center justify-between gap-4 ">
             {/* Logo container */}
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 ">
               <img
                 src="./directlyicon.png"
                 className="w-8 h-8 md:w-12 md:h-12"
@@ -40,21 +39,13 @@ const Home = () => {
               />
             </div>
 
-            {/* Mobile menu button */}
-            <button
-              className="md:hidden text-white hover:text-[#FF851B] transition-colors"
-              onClick={toggleMenu}
-              aria-label={isMenuOpen ? "Close menu" : "Open menu"}
-            >
-              {isMenuOpen ? (
-                <X className="w-6 h-6" />
-              ) : (
-                <Menu className="w-6 h-6" />
-              )}
-            </button>
+            {/* Search bar - desktop only */}
+            <div className="hidden md:flex w-1/3 ">
+              <SearchBar />
+            </div>
 
             {/* Desktop navigation */}
-            <div className="hidden md:flex items-center gap-6">
+            <div className="hidden md:flex items-center gap-6 ">
               <nav className="flex items-center gap-8">
                 <Link to="/about" className="text-white hover:text-[#FF851B]">
                   About Us
@@ -90,35 +81,34 @@ const Home = () => {
                 </Link>
               </div>
             </div>
-          </div>
 
-          {/* Search bar - shown on both mobile and desktop */}
-          <div className="flex w-full md:w-2/3 lg:w-1/2 mx-auto">
-            <div className="flex w-full">
-              <input
-                type="text"
-                placeholder="I am looking for ..."
-                className="bg-[#CBE9F4] w-full p-2 px-4 rounded-l-2xl outline-none"
-              />
-              <div className="flex">
-                <button className="bg-[#CBE9F4] text-[#001F3F] px-3 hover:bg-[#a8d9e9] transition-colors">
-                  <MapPin className="w-5 h-5" />
-                </button>
-                <button className="bg-[#FF851B] text-white px-3 rounded-r-2xl hover:bg-[#ff9642] transition-colors">
-                  <Search className="w-5 h-5" />
-                </button>
-              </div>
-            </div>
+            {/* Mobile menu button */}
+            <button
+              className="md:hidden text-white hover:text-[#FF851B] transition-colors"
+              onClick={toggleMenu}
+              aria-label={isMenuOpen ? "Close menu" : "Open menu"}
+            >
+              {isMenuOpen ? (
+                <X className="w-6 h-6" />
+              ) : (
+                <Menu className="w-6 h-6" />
+              )}
+            </button>
           </div>
 
           {/* Mobile menu */}
           <div
             className={`md:hidden transition-all duration-300 ease-in-out ${
               isMenuOpen
-                ? "max-h-96 opacity-100"
+                ? "max-h-[32rem] opacity-100"
                 : "max-h-0 opacity-0 overflow-hidden"
             }`}
           >
+            {/* Search bar - mobile only */}
+            <div className="py-4">
+              <SearchBar />
+            </div>
+
             <nav className="flex flex-col gap-4 py-4">
               <Link to="/about" className="text-white hover:text-[#FF851B]">
                 About Us
