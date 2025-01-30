@@ -10,6 +10,8 @@ import Products from "./pages/Products";
 import Home from "./pages/Home";
 import ProtectedRoute from "./utils/ProtectedRoute";
 import { AuthProvider, useAuth } from "./Contexts/AuthContext";
+import Profile from "./pages/Profile";
+import SearchResult from "./pages/SearchResult";
 
 const RootRoute = () => {
   const { authenticated } = useAuth();
@@ -24,6 +26,7 @@ function App() {
           <Route path="/" element={<RootRoute />} />
           <Route element={<ProtectedRoute />}>
             <Route path="/products" element={<Products />} />
+            <Route path="/profile" element={<Profile />} />
           </Route>
           <Route path="/signin" element={<SignIn />} />
           <Route path="/signup" element={<SignUp />} />
@@ -35,6 +38,8 @@ function App() {
           <Route path="/forgot-password" element={<ForgotPassword />} />
           <Route path="/email-sent" element={<ForgotPasswordSuccess />} />
           <Route path="/change-password" element={<ChangePassword />} />
+
+          <Route path="/search" element={<SearchResult />} />
         </Routes>
       </AuthProvider>
     </>

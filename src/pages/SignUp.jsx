@@ -65,7 +65,7 @@ const SignUp = () => {
 
       if (response.status == 201) {
         console.log("Success");
-        navigate("/verify-email");
+        navigate("/verify-email", { state: { email: formData.email } });
       }
     } catch (err) {
       setError(
