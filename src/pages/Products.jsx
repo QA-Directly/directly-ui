@@ -27,6 +27,7 @@ import { Link, useNavigate } from "react-router-dom";
 import Footer from "../components/Footer";
 import { useAuth } from "../Contexts/AuthContext";
 import { useState } from "react";
+import Carousel from "../components/Carousel";
 
 const Products = () => {
   const { logout } = useAuth();
@@ -61,61 +62,61 @@ const Products = () => {
       name: "John Doe",
       service: "Barber",
       starRating: 2.8,
-      image: "https://example.com/images/john_doe.jpg",
+      image: "./occupations/baber.png",
     },
     {
       name: "Emily Smith",
       service: "Driver",
       starRating: 4.6,
-      image: "https://example.com/images/emily_smith.jpg",
+      image: "./occupations/hairdresser.png",
     },
     {
       name: "Michael Brown",
       service: "Personal Trainer",
       starRating: 4.9,
-      image: "https://example.com/images/michael_brown.jpg",
+      image: "./occupations/makeup.png",
     },
     {
       name: "Sophia Johnson",
       service: "Childcare",
       starRating: 4.7,
-      image: "https://example.com/images/sophia_johnson.jpg",
+      image: "./occupations/plumber.png",
     },
     {
       name: "Daniel Lee",
       service: "Gardener",
       starRating: 4.5,
-      image: "https://example.com/images/daniel_lee.jpg",
+      image: "./occupations/makeup.png",
     },
     {
       name: "Olivia Martinez",
       service: "House Cleaner",
       starRating: 4.8,
-      image: "https://example.com/images/olivia_martinez.jpg",
+      image: "./occupations/plumber.png",
     },
     {
       name: "Liam Wilson",
       service: "DJ",
       starRating: 4.9,
-      image: "https://example.com/images/liam_wilson.jpg",
+      image: "./occupations/baber.png",
     },
     {
       name: "Emma Davis",
       service: "Makeup Artist",
       starRating: 4.6,
-      image: "https://example.com/images/emma_davis.jpg",
+      image: "./occupations/makeup.png",
     },
     {
       name: "Noah Taylor",
       service: "IT Specialist",
       starRating: 4.7,
-      image: "https://example.com/images/noah_taylor.jpg",
+      image: "./occupations/hairdresser.png",
     },
     {
       name: "Ava Harris",
       service: "Fitness Coach",
       starRating: 4.8,
-      image: "https://example.com/images/ava_harris.jpg",
+      image: "./occupations/makeup.png",
     },
   ];
   const renderStars = (rating) => {
@@ -318,7 +319,7 @@ const Products = () => {
             </div>
           ))}
         </div>
-        <div className="w-full md:w-1/2">
+        {/* <div className="w-full md:w-1/2">
           <img
             src="./heroImage.png"
             alt=""
@@ -327,16 +328,19 @@ const Products = () => {
           <p className="bg-[#001F3F] p-2 text-center rounded-b-lg text-white">
             Fashion Designer
           </p>
+        </div> */}
+        <div className="flex justify-center items-center m-auto w-full md:w-1/2">
+          <Carousel />
         </div>
 
-        <div className="hidden w-full md:w-1/5 md:*:flex flex-col justify-between items-center gap-8">
-          <div className="w-full md:w-[80%] h-1/2 bg-[#CBE9F4] rounded-lg p-2 text-center flex flex-col justify-around shadow-md">
+        <div className=" flex  flex-col justify-between items-center gap-8">
+          <div className="w-full md:w-[80%] h-1/2 bg-[#CBE9F4] pb-2 rounded-lg p-2 text-center flex flex-col justify-around shadow-md">
             <p className="text-2xl font-bold">How to use Directly ?</p>
             <p>Follow these steps</p>
             <Link>View more</Link>
           </div>
-          <div className="w-full md:w-[80%] h-1/2 bg-[#FF851B] pt-4 p-2 rounded-lg border-2 flex flex-col justify-around shadow-md">
-            <p className="text-xl text-white font-bold text-center">
+          <div className="w-full md:w-[80%] h-1/2 bg-[#FF851B] pt-4 p-2 rounded-lg  flex flex-col justify-around shadow-md">
+            <p className="text-2xl text-white font-bold text-center">
               Want to provide a service
             </p>
             <div className="w-16 h-16 rounded-full bg-white flex justify-center items-center m-auto">
@@ -359,7 +363,7 @@ const Products = () => {
               key={index}
               className="w-full border flex flex-col gap-2 shadow-sm hover:shadow-md p-2 pb-4 md:p-4 rounded-lg"
             >
-              <img src="./heroImage.png" className="w-full rounded-lg" />
+              <img src={serviceProvider.image} className="w-full rounded-lg" />
               <p className="font-bold text-xl">{serviceProvider.name}</p>
               <p>{serviceProvider.service}</p>
               <div className="flex flex-col  items-start gap-4">

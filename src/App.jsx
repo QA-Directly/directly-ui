@@ -10,8 +10,17 @@ import Products from "./pages/Products";
 import Home from "./pages/Home";
 import ProtectedRoute from "./utils/ProtectedRoute";
 import { AuthProvider, useAuth } from "./Contexts/AuthContext";
-import Profile from "./pages/Profile";
 import SearchResult from "./pages/SearchResult";
+import ProviderApplication from "./pages/ProviderApplication";
+import Dashboard from "./pages/Dashboard";
+import Provider from "./pages/Provider";
+import Profile from "./components/Dashoard/Profile";
+import Messages from "./components/Dashoard/Messages";
+import Transactions from "./components/Dashoard/Transactions";
+import Notifications from "./components/Dashoard/Notifications";
+import ResetPassword from "./components/Dashoard/ResetPassword";
+import SavedProviders from "./components/Dashoard/SavedProviders";
+import Bookings from "./components/Dashoard/Bokings";
 
 const RootRoute = () => {
   const { authenticated } = useAuth();
@@ -26,7 +35,17 @@ function App() {
           <Route path="/" element={<RootRoute />} />
           <Route element={<ProtectedRoute />}>
             <Route path="/products" element={<Products />} />
-            <Route path="/profile" element={<Profile />} />
+            <Route path="/provider" element={<Provider />} />
+            <Route path="/provider" element={<ProviderApplication />} />
+            <Route path="/dashboard" element={<Dashboard />}>
+              <Route path="profile" element={<Profile />} />
+              <Route path="messages" element={<Messages />} />
+              <Route path="transactions" element={<Transactions />} />
+              <Route path="notifications" element={<Notifications />} />
+              <Route path="bookings" element={<Bookings />} />
+              <Route path="savedProviders" element={<SavedProviders />} />
+              <Route path="resetPassword" element={<ResetPassword />} />
+            </Route>
           </Route>
           <Route path="/signin" element={<SignIn />} />
           <Route path="/signup" element={<SignUp />} />

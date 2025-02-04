@@ -15,7 +15,7 @@ import { useAuth } from "../Contexts/AuthContext";
 import { useState } from "react";
 import Header from "../components/Header";
 
-function Profile() {
+function Provider() {
   const { logout } = useAuth();
   const navigate = useNavigate();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -134,7 +134,7 @@ function Profile() {
 
       {/* Review & Gallery */}
       <div className="w-[90%] border-2 md:w-4/5 flex flex-col-reverse md:flex-row bg-[#edebeb] mt-8  rounded-2xl justify-between gap-12 items-start m-auto">
-        <div className=" bg-white rounded-2xl  pb-4">
+        <div className=" bg-white rounded-2xl  pb-4 mb-12">
           <div className="w-full bg-[#86dfff] rounded-t-2xl p-4 text-[#001f3f] text-center font-bold text-xl">
             Reviews
           </div>
@@ -151,11 +151,11 @@ function Profile() {
               ))}
               <p className="underline mt-4 text-[#001f3f]">View more reviews</p>
             </div>
-            <div className="flex ">
+            <div className="w-full flex justify-center m-auto px-4">
               <input
                 type="text"
                 placeholder="Leave a review"
-                className="w-[90%] m-auto outline-none rounded-lg p-2 bg-[#edebeb] shadow-md"
+                className="w-full m-auto outline-none rounded-lg p-2 bg-[#edebeb] shadow-md"
               />
               <div className="relative right-10 top-2 text-[#ff851b]">
                 <SendHorizontal />
@@ -207,4 +207,4 @@ function Profile() {
   );
 }
 
-export default Profile;
+export default Provider;
