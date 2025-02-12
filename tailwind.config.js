@@ -8,6 +8,7 @@ export default {
         ash: "#d9d9d9",
         lightText: "#CBE9F4",
         lightBlue: "#334F6C",
+        gold: "#FF851B",
       },
     },
   },

@@ -51,32 +51,20 @@ const SignIn = () => {
     setLoading(true);
 
     try {
-      const response = await axios.post(
-        "https://directly-core.onrender.com/auth/login",
-        {
-          email: formData.email,
-          password: formData.password,
-        }
-      );
-
-      const token = response.data.id;
-      login(token);
-
+      await login(formData.email, formData.password);
       navigate("/");
     } catch (err) {
       if (
-        err.response.data.message == "Email not verified. Please verify email"
+        err.response?.data?.message ===
+        "Email not verified. Please verify email"
       ) {
         setError(
           "Email not verified. Please check your email to verify your account."
         );
-        console.log("Error: ", err);
-        return;
-      }
-      if (err.response.data.message == "User not found") {
+      } else if (err.response?.data?.message === "User not found") {
         setError("User not found. Proceed to register an account.");
-        console.log("Error: ", err);
-        return;
+      } else {
+        setError("Failed to sign in. Please check your credentials.");
       }
     } finally {
       setLoading(false);

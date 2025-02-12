@@ -1,11 +1,12 @@
 import React from "react";
+import user from "../../../public/occupations/plumber.png";
 
 function Profile() {
   return (
-    <div className="w-4/5 bg-white flex flex-col p-4  rounded-lg border-2">
+    <div className="w-4/5 bg-white flex flex-col p-4 mt-10 rounded-lg border-2">
       <div className="w-full flex flex-row gap-2 justify-between items-center m-auto mt-8">
         <img
-          src="./occupations/baber.png"
+          src={user}
           className="w-24 h-24 rounded-full"
           alt=""
         />

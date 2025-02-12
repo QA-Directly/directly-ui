@@ -10,6 +10,7 @@ import Products from "./pages/Products";
 import Home from "./pages/Home";
 import ProtectedRoute from "./utils/ProtectedRoute";
 import { AuthProvider, useAuth } from "./Contexts/AuthContext";
+import { ProviderContextProvider } from "./Contexts/ProviderContext";
 import SearchResult from "./pages/SearchResult";
 import ProviderApplication from "./pages/ProviderApplication";
 import Dashboard from "./pages/Dashboard";
@@ -20,7 +21,7 @@ import Transactions from "./components/Dashoard/Transactions";
 import Notifications from "./components/Dashoard/Notifications";
 import ResetPassword from "./components/Dashoard/ResetPassword";
 import SavedProviders from "./components/Dashoard/SavedProviders";
-import Bookings from "./components/Dashoard/Bokings";
+import Bookings from "./components/Dashoard/Bookings";
 
 const RootRoute = () => {
   const { authenticated } = useAuth();
@@ -29,14 +30,19 @@ const RootRoute = () => {
 
 function App() {
   return (
-    <>
-      <AuthProvider>
+    <AuthProvider>
+      <ProviderContextProvider>
         <Routes>
           <Route path="/" element={<RootRoute />} />
           <Route element={<ProtectedRoute />}>
             <Route path="/products" element={<Products />} />
-            <Route path="/provider" element={<Provider />} />
-            <Route path="/provider" element={<ProviderApplication />} />
+            <Route path="/profile" element={<Provider />} />
+            {/* Updated provider routes */}
+            <Route path="/provider/:id" element={<Provider />} />
+            <Route
+              path="/provider/application"
+              element={<ProviderApplication />}
+            />
             <Route path="/dashboard" element={<Dashboard />}>
               <Route path="profile" element={<Profile />} />
               <Route path="messages" element={<Messages />} />
@@ -57,11 +63,10 @@ function App() {
           <Route path="/forgot-password" element={<ForgotPassword />} />
           <Route path="/email-sent" element={<ForgotPasswordSuccess />} />
           <Route path="/change-password" element={<ChangePassword />} />
-
           <Route path="/search" element={<SearchResult />} />
         </Routes>
-      </AuthProvider>
-    </>
+      </ProviderContextProvider>
+    </AuthProvider>
   );
 }
 

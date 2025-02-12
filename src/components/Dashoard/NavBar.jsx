@@ -1,3 +1,4 @@
+import { useState } from "react";
 import {
   Banknote,
   Bell,
@@ -7,10 +8,17 @@ import {
   MessagesSquare,
   NotebookPen,
   SquarePen,
+  Menu,
+  X,
 } from "lucide-react";
 import { NavLink } from "react-router-dom";
 
+import icon from "../.././../public/directlyicon.png";
+import name from "../.././../public/directlyname.png";
+
 function NavBar() {
+  const [isOpen, setIsOpen] = useState(false);
+
   const links = [
     { name: "Profile", icon: <SquarePen />, link: "/profile" },
     { name: "Messages", icon: <MessagesSquare />, link: "/messages" },
@@ -30,38 +38,54 @@ function NavBar() {
   ];
 
   return (
-    <div className="w-1/5 h-screen fixed bg-primary text-lightText flex flex-col">
-      <div className="w-full py-4 flex justify-center items-center gap-2">
-        <img src="./directlyicon.png" alt="Icon" className="h-8" />
-        <img src="./directlyname.png" alt="Logo" className="h-8" />
-      </div>
-      <div className="border-b-2 border-lightText"></div>
+    <>
+      {/* Mobile Menu Button */}
+      <button
+        onClick={() => setIsOpen(!isOpen)}
+        className="fixed top-4 left-4 z-50 md:hidden bg-primary text-lightText p-2 rounded"
+      >
+        {isOpen ? <X size={24} /> : <Menu size={24} />}
+      </button>
 
-      <div className="p-4 flex flex-col gap-4">
-        <h2 className="font-bold text-2xl p-2">Dashboard</h2>
-        {links.map((link, index) => (
-          <NavLink
-            to={`/dashboard${link.link}`}
-            key={index}
-            className={({ isActive }) =>
-              `flex items-center gap-2 p-2 rounded hover:bg-lightBlue hover:cursor-pointer ${
-                isActive ? "bg-lightBlue" : ""
-              }`
-            }
-          >
-            {link.icon}
-            <span>{link.name}</span>
-          </NavLink>
-        ))}
+      {/* Navbar */}
+      <div
+        className={`w-1/2 md:w-1/5 h-screen fixed bg-primary text-lightText flex flex-col transform transition-transform duration-300 ease-in-out ${
+          isOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0"
+        }`}
+      >
+        <div className="w-full py-4 flex justify-center items-center gap-2">
+          <img src={icon} alt="Icon" className="h-6 md:h-8" />
+          <img src={name} alt="Logo" className="h-6 md:h-8" />
+        </div>
+        <div className="border-b-2 border-lightText"></div>
+
+        <div className="p-4 flex flex-col gap-4">
+          <h2 className="font-bold text-xl md:text-2xl p-2">Dashboard</h2>
+          {links.map((link, index) => (
+            <NavLink
+              to={`/dashboard${link.link}`}
+              key={index}
+              onClick={() => setIsOpen(false)}
+              className={({ isActive }) =>
+                `flex items-center gap-2 p-2 rounded hover:bg-lightBlue hover:cursor-pointer text-sm md:text-base ${
+                  isActive ? "bg-lightBlue" : ""
+                }`
+              }
+            >
+              {link.icon}
+              <span>{link.name}</span>
+            </NavLink>
+          ))}
+        </div>
+
+        <div className="mt-auto border-t-2 border-lightText">
+          <button className="flex items-center gap-2 p-4 px-6 text-red-500 font-bold text-lg md:text-xl">
+            <LogOut />
+            <span>Log Out</span>
+          </button>
+        </div>
       </div>
-      {/* Logout */}
-      <div className="mt-auto border-t-2 border-lightText">
-        <button className="flex items-center gap-2 p-4 px-6 text-red-500 font-bold text-xl">
-          <LogOut />
-          <span>Log Out</span>
-        </button>
-      </div>
-    </div>
+    </>
   );
 }
 

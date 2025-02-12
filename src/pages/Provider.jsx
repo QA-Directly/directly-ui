@@ -9,16 +9,25 @@ import {
   X,
   SendHorizontal,
 } from "lucide-react";
-
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useParams } from "react-router-dom";
 import { useAuth } from "../Contexts/AuthContext";
+import { useProvider } from "../Contexts/ProviderContext";
 import { useState } from "react";
 import Header from "../components/Header";
 
 function Provider() {
   const { logout } = useAuth();
   const navigate = useNavigate();
+  const { id } = useParams(); // Get the provider ID from URL
+  const { getProviderById } = useProvider();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+
+  // Get provider data
+  const provider = getProviderById(Number(id));
+
+  if (!provider) {
+    return <div>Provider not found</div>;
+  }
 
   // handle menu toggle (mobile)
   const toggleMenu = () => {
@@ -31,47 +40,28 @@ function Provider() {
     navigate("/");
   };
 
-  const reviews = [
-    {
-      name: "Miss Eze",
-      text: "Mr Patrick did a good job.He also kept to time",
-      rating: 5,
-    },
-    {
-      name: "Mark",
-      text: "Mr Patrick did a good job. He also kept to time",
-      rating: 5,
-    },
-    {
-      name: "Mr. Peter",
-      text: "Mr Patrick did a good job. He also kept to time",
-      rating: 5,
-    },
-  ];
-
   return (
     <div className="bg-[#EDEBEB] flex flex-col justify-between">
       <Header />
 
       {/*  profile*/}
-
       <div className="w-[90%] md:w-4/5 rounded-2xl border-4 flex flex-row justify-evenly items-center mt-8 p-4 md:p-8 bg-white m-auto">
         <div className="hidden w-1/4 md:flex flex-col justify-center items-center gap-2">
-          <img src="./directly2.png" className="rounded-full w-4/5" alt="" />
+          <img src={provider.image} className="rounded-full w-4/5" alt="" />
           <p className="hidden md:flex bg-[#CBE9F4] w-2/3 p-1 rounded-3xl items-start mr-40 justify-center ">
-            Verified ID
+            {provider.verifiedId ? "Verified ID" : "Unverified"}
           </p>
         </div>
         <div className="w-full md:w-2/3 flex flex-col gap-4 ">
           <div className="flex flex-row justify-between items-center">
             <img
-              src="./directly2.png"
+              src={provider.image}
               className="flex md:hidden rounded-full w-1/3"
               alt=""
             />
-            <h2 className="text-lg md:text-3xl font-bold">Mr. Patrick</h2>
+            <h2 className="text-lg md:text-3xl font-bold">{provider.name}</h2>
             <div className="flex md:hidden bg-[#CBE9F4] h-6 p-2 rounded-xl text-xs justify-center items-center">
-              Verified ID
+              {provider.verifiedId ? "Verified ID" : "Unverified"}
             </div>
           </div>
           <div className="flex flex-col gap-4">
@@ -80,14 +70,16 @@ function Provider() {
                 <h2 className="uppercase  text-xs md:text-lg font-medium ">
                   Service Category
                 </h2>
-                <p className="text-xs md:text-lg font-semibold">Plumber</p>
+                <p className="text-xs md:text-lg font-semibold">
+                  {provider.service}
+                </p>
               </div>
               <div className="flex flex-col gap-1">
                 <h2 className="uppercase text-xs md:text-lg font-medium">
                   PHONE NUMBER
                 </h2>
                 <p className="text-xs md:text-lg font-semibold">
-                  +2347035974746
+                  {provider.phone}
                 </p>
               </div>
               <div className="flex flex-col gap-1">
@@ -95,14 +87,16 @@ function Provider() {
                   EMAIL ADDRESS
                 </h2>
                 <p className="text-xs md:text-lg font-semibold">
-                  patrick123@gmail.com
+                  {provider.email}
                 </p>
               </div>
               <div className="flex flex-col gap-1">
                 <h2 className="uppercase text-xs md:text-lg font-medium">
                   LOCATION{" "}
                 </h2>
-                <p className="text-xs md:text-lg font-semibold">Lagos</p>
+                <p className="text-xs md:text-lg font-semibold">
+                  {provider.location}
+                </p>
               </div>
             </div>
           </div>
@@ -113,7 +107,7 @@ function Provider() {
             <button className="w-full rounded-xl p-3 bg-[#CBE9F4]">
               Send a Message
             </button>
-          </div>{" "}
+          </div>
         </div>
       </div>
 
@@ -124,10 +118,7 @@ function Provider() {
             Service Description
           </div>
           <div className=" text-black text-sm md:text-lg font-light ">
-            Lorem ipsum dolor sit amet consectetur. Proin hendrerit interdum
-            faucibus nisl lacus. Sit hendrerit blandit libero consequat
-            condimentum nam amet velit a. Dolor nisl quisque aliquam quis fusce
-            aliquet enim iaculis. In eget lacus sit tincidunt.
+            {provider.description}
           </div>
         </div>
       </div>
@@ -140,7 +131,7 @@ function Provider() {
           </div>
           <div className="flex flex-col  gap-40 p-2">
             <div className="h-full flex flex-col justify-between items-center">
-              {reviews.map((review, index) => (
+              {provider.reviews.map((review, index) => (
                 <div key={index} className="flex flex-col border-b-2 p-2 gap-4">
                   <div className="flex flex-row justify-between items-center">
                     <h2 className="font-bold text-xl">{review.name}</h2>
@@ -169,36 +160,14 @@ function Provider() {
           </div>
           <div className="w-full p-8">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8 place-items-center">
-              <img
-                src="/directl1.png"
-                alt=""
-                className="w-full max-w-[256px] h-64 object-cover rounded-lg"
-              />
-              <img
-                src="/directly2.png"
-                alt=""
-                className="w-full max-w-[256px] h-64 object-cover rounded-lg"
-              />
-              <img
-                src="/directly3.png"
-                alt=""
-                className="w-full max-w-[256px] h-64 object-cover rounded-lg"
-              />
-              <img
-                src="/directly4.png"
-                alt=""
-                className="w-full max-w-[256px] h-64 object-cover rounded-lg"
-              />
-              <img
-                src="/directly3.png"
-                alt=""
-                className="w-full max-w-[256px] h-64 object-cover rounded-lg"
-              />
-              <img
-                src="/directly4.png"
-                alt=""
-                className="w-full max-w-[256px] h-64 object-cover rounded-lg"
-              />
+              {provider.gallery.map((image, index) => (
+                <img
+                  key={index}
+                  src={image}
+                  alt=""
+                  className="w-full max-w-[256px] h-64 object-cover rounded-lg"
+                />
+              ))}
             </div>
           </div>
         </div>
