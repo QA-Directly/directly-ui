@@ -143,30 +143,21 @@ const Booking = () => {
 
       // Ensure all values are strings and properly formatted
       const bookingData = {
-        userId: String(formData.userId),
-        serviceId: String(id), // Convert to string explicitly
-        firstName: String(formData.firstName),
-        lastName: String(formData.lastName),
-        date: new Date(formData.date).toISOString().split("T")[0], // Ensure proper ISO format
-        time: String(formData.time),
-        address: String(formData.address),
-        phone: String(formData.phone),
-        note: String(formData.note || ""),
+        bookingDetails: {
+          userId: String(formData.userId),
+          serviceId: String(id), // Convert to string explicitly
+          firstName: String(formData.firstName),
+          lastName: String(formData.lastName),
+          date: new Date(formData.date).toISOString().split("T")[0], // Ensure proper ISO format
+          time: String(formData.time),
+          address: String(formData.address),
+          phone: String(formData.phone),
+          note: String(formData.note || ""),
+        },
       };
 
       // Log the stringified data to see exactly what's being sent
       console.log("Stringified booking data:", JSON.stringify(bookingData));
-      // Add this validation before the API call
-      const hasEmptyValues = Object.entries(bookingData).some(
-        ([key, value]) => {
-          if (key === "note") return false; // note can be empty
-          return !value || value.trim() === "";
-        }
-      );
-
-      if (hasEmptyValues) {
-        throw new Error("Please fill in all required fields");
-      }
 
       const response = await axios({
         method: "POST",

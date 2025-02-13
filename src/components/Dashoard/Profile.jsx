@@ -1,23 +1,65 @@
-import React, { useState, useRef } from "react";
-import { Camera } from "lucide-react"; // Import the camera icon
+import React, { useState, useRef, useEffect } from "react";
+import { Camera } from "lucide-react";
 import user from "../../assets/occupations/plumber.png";
 import { Link } from "react-router-dom";
+import { useAuth } from "../../Contexts/AuthContext";
+import axios from "axios";
 
 function Profile() {
-  const [isProvider, setIsProvider] = useState(true);
-  const [dp, setDp] = useState(user);
+  const { userProfile, refreshProfile } = useAuth(); // Add refreshProfile from context
+  const [uploadLoading, setUploadLoading] = useState(false);
+  const [uploadError, setUploadError] = useState("");
+  const [dp, setDp] = useState(userProfile.profilePicture);
+
   const fileInputRef = useRef(null);
+
+  useEffect(() => {
+    setDp(userProfile.profilePicture);
+  }, [userProfile]);
 
   const handleImageClick = () => {
     fileInputRef.current.click();
   };
 
-  const handleImageChange = (event) => {
+  const handleImageChange = async (event) => {
     const file = event.target.files[0];
     if (file) {
-      // Handle the file upload logic here
-      setDp(file);
-      console.log("File selected:", file);
+      setUploadLoading(true);
+      setUploadError("");
+
+      try {
+        const formData = new FormData();
+        formData.append("file", file);
+
+        const response = await axios.post(
+          `https://directly-core.onrender.com/users/${userProfile._id}/add-profile-picture`,
+          formData,
+          {
+            headers: {
+              "Content-Type": "multipart/form-data",
+            },
+            withCredentials: true, // Add this to ensure cookies are sent
+          }
+        );
+
+        console.log("Profile picture updated:", response.data);
+
+        // Create a temporary object URL for immediate visual feedback
+        const tempImageUrl = URL.createObjectURL(file);
+        setDp(tempImageUrl);
+
+        // Refresh the user profile to get the new image URL from server
+        await refreshProfile();
+      } catch (error) {
+        console.error("Error uploading profile picture:", error);
+        setUploadError(
+          error.response?.data?.message || "Failed to upload profile picture"
+        );
+        // Reset to original profile picture if upload fails
+        setDp(userProfile.profilePicture);
+      } finally {
+        setUploadLoading(false);
+      }
     }
   };
 
@@ -39,10 +81,20 @@ function Profile() {
             className="hidden"
             accept="image/*"
           />
+          {uploadLoading && (
+            <div className="absolute inset-0 flex items-center justify-center bg-black/30 rounded-full">
+              <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-white"></div>
+            </div>
+          )}
+          {uploadError && (
+            <p className="absolute -bottom-6 left-0 text-sm text-red-500">
+              {uploadError}
+            </p>
+          )}
         </div>
 
         <div className="w-1/3 flex flex-row items-center justify-between gap-8 h-12 ">
-          {isProvider && (
+          {userProfile.role === "provider" && (
             <Link
               to="/dashboard/upload"
               className="w-1/2 border-2 border-primary bg-primary p-2 rounded-lg text-lightText"
@@ -67,9 +119,9 @@ function Profile() {
             type="text"
             id="firstName"
             name="firstName"
-            value="Paul"
+            value={userProfile.firstName}
             className="w-full bg-ash/40 border border-gray-300 rounded py-4 px-3 focus:outline-none focus:ring"
-            disabled
+            readOnly
           />
         </div>
         <div>
@@ -83,9 +135,9 @@ function Profile() {
             type="text"
             id="surname"
             name="surname"
-            value="Anjola"
+            value={userProfile.lastName}
             className="w-full bg-ash/40 border border-gray-300 rounded py-4 px-3 focus:outline-none focus:ring"
-            disabled
+            readOnly
           />
         </div>
       </div>
@@ -97,12 +149,12 @@ function Profile() {
           type="email"
           id="email"
           name="email"
-          value="Paulanjola@gmail.com"
+          value={userProfile.email}
           className="w-full bg-ash/40 border border-gray-300 rounded py-4 px-3 focus:outline-none focus:ring focus:border-blue-500"
-          disabled
+          readOnly
         />
       </div>
-      {isProvider && (
+      {userProfile.role === "provider" && (
         <div className="mb-4">
           <label
             htmlFor="businessAddress"
@@ -114,13 +166,13 @@ function Profile() {
             type="text"
             id="businessAddress"
             name="businessAddress"
-            value="20, Adams street, magodo phase 2, Lagos"
+            value={userProfile.businessAddress}
             className="w-full border-gray-300 border rounded py-4 px-3 focus:outline-none focus:ring focus:border-blue-500"
           />
         </div>
       )}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-        {isProvider && (
+        {userProfile.role === "provider" && (
           <div>
             <label
               htmlFor="phoneNumber"
@@ -132,27 +184,10 @@ function Profile() {
               type="tel"
               id="phoneNumber"
               name="phoneNumber"
-              value="+234 902 5432 789"
+              value={userProfile.phoneNumber}
               className="w-full border-gray-300 border rounded py-4 px-3 focus:outline-none focus:ring focus:border-blue-500"
+              readOnly
             />
-          </div>
-        )}
-        {isProvider && (
-          <div>
-            <label
-              htmlFor="state"
-              className="block text-gray-700 font-medium mb-2"
-            >
-              Gender
-            </label>
-            <select
-              id="state"
-              name="state"
-              className="w-full border-gray-300 border rounded py-4 px-3 focus:outline-none focus:ring focus:border-blue-500"
-            >
-              <option value="Male">Male</option>
-              <option value="Female">Female</option>
-            </select>
           </div>
         )}
       </div>
