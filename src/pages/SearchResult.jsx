@@ -1,8 +1,11 @@
 import { useEffect, useState } from "react";
 import { useSearchParams, Link } from "react-router-dom";
 import { useProvider } from "../Contexts/ProviderContext";
-import Header from "../components/Header";
-import SearchBar from "../components/SearchBar";
+import Header from "../assets/Header";
+
+import Footer from "../components/Footer";
+import NotFound from "../components/NotFound";
+import { MapPin } from "lucide-react";
 
 function SearchResult() {
   const [searchParams] = useSearchParams();
@@ -33,70 +36,92 @@ function SearchResult() {
   }, [query, location, providers]);
 
   return (
-    <div className="min-h-screen bg-[#EDEBEB]">
+    <div className="w-full min-h-screen bg-[#EDEBEB]">
       <Header />
 
-      <div className="container mx-auto px-4 py-8">
-        <div className="mb-8">
-          <SearchBar />
-        </div>
-
-        <div className="mb-4">
-          <h2 className="text-2xl font-bold text-[#001F3F]">
-            Search Results {query && `for "${query}"`}
-            {location && ` in ${location}`}
-          </h2>
-          <p className="text-gray-600 mt-2">
-            Found {filteredProviders.length} service providers
-          </p>
-        </div>
-
+      <div className=" container mx-auto px-4 py-8">
         {isLoading ? (
           <div className="text-center py-8">Loading...</div>
         ) : filteredProviders.length === 0 ? (
-          <div className="text-center py-8">
-            <p className="text-gray-600">
-              No service providers found matching your search criteria.
-            </p>
-          </div>
+          <NotFound />
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filteredProviders.map((provider) => (
-              <Link
-                key={provider.id}
-                to={`/provider/${provider.id}`}
-                className="bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow"
-              >
-                <div className="p-4">
-                  <div className="flex items-center space-x-4">
+          <div className="w-[90%] m-auto bg-white rounded-lg shadow">
+            <div className="flex justify-between items-center px-6 py-4 border-b-2">
+              <h2 className="text-xl font-semibold">Search results</h2>
+              <span className="text-gray-600">
+                Over {providers.length.toLocaleString()} ads found
+              </span>
+            </div>
+
+            <div className="flex flex-col">
+              {filteredProviders.map((provider) => (
+                <Link
+                  to={`/provider/${provider.id}`}
+                  key={provider.id}
+                  className="p-6 border-b flex flex-row gap-6 hover:bg-ash/50"
+                >
+                  <div className="flex">
                     <img
                       src={provider.image}
                       alt={provider.name}
-                      className="w-16 h-16 rounded-full object-cover"
+                      className="w-24 h-24 rounded-full object-cover border-4 border-orange-500"
                     />
-                    <div>
-                      <h3 className="font-semibold text-lg">{provider.name}</h3>
-                      <p className="text-[#FF851B]">{provider.service}</p>
-                    </div>
                   </div>
 
-                  <div className="mt-4">
-                    <div className="flex items-center justify-between">
-                      <span className="text-gray-600">{provider.location}</span>
-                      <div className="flex items-center">
-                        <span className="text-yellow-500">★</span>
-                        <span className="ml-1">
-                          {provider.starRating.toFixed(1)}
-                        </span>
+                  <div className="w-full flex flex-row justify-between items-center">
+                    <div>
+                      <h3 className="text-xl font-semibold">{provider.name}</h3>
+                      <p className="text-gray-600">{provider.service}</p>
+                      <div className="flex items-center gap-1 text-gray-600 mt-1">
+                        <MapPin size={16} />
+                        <span>{provider.location}</span>
+                      </div>
+                    </div>
+                    <p className="text-gray-600 mt-3 max-w-2xl">
+                      {provider.description}
+                    </p>
+                    <div className="text-right">
+                      <div
+                        className={`inline-block px-3 py-1 rounded-full text-sm ${
+                          provider.status === "Available"
+                            ? "bg-green-100 text-green-600"
+                            : "bg-red-100 text-red-600"
+                        }`}
+                      >
+                        {(provider.status = "Available")}
+                      </div>
+
+                      <div className="mt-2">
+                        <div className="font-semibold">
+                          {provider.starRating} rating
+                        </div>
+                        <div className="flex items-center justify-end">
+                          {[...Array(5)].map((_, index) => (
+                            <span
+                              key={index}
+                              className={`text-xl ${
+                                index < Math.floor(provider.starRating)
+                                  ? "text-gold"
+                                  : "text-gray-300"
+                              }`}
+                            >
+                              ★
+                            </span>
+                          ))}
+                        </div>
+                        <div className="text-sm text-gray-600 mt-1">
+                          Open: 9am - 7pm
+                        </div>
                       </div>
                     </div>
                   </div>
-                </div>
-              </Link>
-            ))}
+                </Link>
+              ))}
+            </div>
           </div>
         )}
       </div>
+      <Footer />
     </div>
   );
 }

@@ -2,13 +2,17 @@ import { Swiper, SwiperSlide } from "swiper/react";
 import "swiper/css";
 import "swiper/css/navigation";
 import { Navigation, Autoplay } from "swiper/modules";
+import fashion from "../assets/carousel/fashion.png";
+import makeup from "../assets/carousel/makeUp.png";
+import plumber from "../assets/carousel/plumber.png";
+import interior from "../assets/carousel/interior.png";
 
 export default function Carousel() {
   const slides = [
-    { image: "/carousel/fashion.png", occupation: "Fashion Designer" },
-    { image: "/carousel/makeUp.png", occupation: "Make Up Artist" },
-    { image: "/carousel/plumber.png", occupation: "Plumber " },
-    { image: "/carousel/interior.png", occupation: "Interior Designer " },
+    { image: fashion, occupation: "Fashion Designer" },
+    { image: makeup, occupation: "Make Up Artist" },
+    { image: plumber, occupation: "Plumber " },
+    { image: interior, occupation: "Interior Designer " },
   ];
   return (
     <Swiper

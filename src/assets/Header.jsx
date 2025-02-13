@@ -11,7 +11,8 @@ import {
 import { Link, NavLink, useNavigate } from "react-router-dom";
 import { useAuth } from "../Contexts/AuthContext";
 import { useState } from "react";
-
+import name from "../assets/directlyname.png";
+import icon from "../assets/directlyicon.png";
 function Header() {
   const { logout } = useAuth();
   const navigate = useNavigate();
@@ -45,21 +46,17 @@ function Header() {
   };
 
   return (
-    <header className="bg-[#001F3F] w-full p-4 flex flex-col gap-4 md:flex-row md:justify-between md:items-center">
+    <header className="bg-primary w-full p-4 flex flex-col gap-4 md:flex-row md:justify-between md:items-center">
       {/* Logo and Mobile Menu Section */}
       <div className="flex justify-between items-center w-full md:w-auto">
-        <div className="flex items-center gap-2">
+        <NavLink to="/" className="flex items-center gap-2">
           <img
-            src="./directlyicon.png"
+            src={icon}
             className="w-8 h-8 md:w-12 md:h-12"
             alt="Directly Icon"
           />
-          <img
-            src="./directlyname.png"
-            className="w-32 md:w-40"
-            alt="Directly Name"
-          />
-        </div>
+          <img src={name} className="w-32 md:w-40" alt="Directly Name" />
+        </NavLink>
         <button
           className="md:hidden text-[#CBE9F4] hover:text-[#FF851B] transition-colors"
           onClick={toggleMenu}
@@ -95,7 +92,7 @@ function Header() {
       <div className="hidden md:flex items-center gap-6">
         <nav className="flex items-center gap-6">
           <Link
-            to="/provider/1"
+            to="/dashboard/profile"
             className="text-[#CBE9F4] hover:text-[#FF851B] transition-colors"
           >
             <User className="w-6 h-6" />

@@ -3,11 +3,11 @@ import Header from "../components/Dashoard/Header";
 
 import { Outlet } from "react-router-dom";
 
-function Dashboard() {
+function Admin() {
   return (
     <div className="flex flex-row">
       <NavBar />
-      <div className="w-4/5 min-h-screen flex flex-col  bg-ash ml-[20%] gap-2">
+      <div className="w-4/5  flex flex-col  bg-ash ml-[20%] gap-2">
         {/* <Header /> */}
         <div>
           <div className="flex md:hidden">HEllo World</div>
@@ -21,4 +21,4 @@ function Dashboard() {
   );
 }
 
-export default Dashboard;
+export default Admin;

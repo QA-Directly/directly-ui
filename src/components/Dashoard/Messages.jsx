@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Search, SendHorizonal } from "lucide-react";
-import user from "../../../public/occupations/plumber.png";
+import user from "../../assets/occupations/plumber.png";
 
 function Messages() {
   const [selectedChat, setSelectedChat] = useState(null);

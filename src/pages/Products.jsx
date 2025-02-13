@@ -23,24 +23,28 @@ import {
   X,
 } from "lucide-react";
 
-import { NavLink, useNavigate } from "react-router-dom";
+import { Link, NavLink, useNavigate } from "react-router-dom";
 import Footer from "../components/Footer";
 import { useAuth } from "../Contexts/AuthContext";
 import { useState } from "react";
 import Carousel from "../components/Carousel";
-import Header from "../components/Header";
+import Header from "../assets/Header";
+
+// Import providers data
+import { providersData } from "../utils/ProvidersData"; // Assuming default export
+// import images
 
 const Products = () => {
   const { logout } = useAuth();
   const navigate = useNavigate();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
-  // handle menu toggle (mobile)
+  // Handle menu toggle (mobile)
   const toggleMenu = () => {
     setIsMenuOpen(!isMenuOpen);
   };
 
-  // handle logout
+  // Handle logout
   const handleLogOut = () => {
     logout();
     navigate("/");
@@ -58,68 +62,16 @@ const Products = () => {
     { name: "DJ & Entertainment Services", icon: Music },
     { name: "Fitness & Personal Training Services", icon: Dumbbell },
   ];
-  const servicesProviders = [
-    {
-      name: "John Doe",
-      service: "Barber",
-      starRating: 2.8,
-      image: "./occupations/baber.png",
-    },
-    {
-      name: "Emily Smith",
-      service: "Driver",
-      starRating: 4.6,
-      image: "./occupations/hairdresser.png",
-    },
-    {
-      name: "Michael Brown",
-      service: "Personal Trainer",
-      starRating: 4.9,
-      image: "./occupations/makeup.png",
-    },
-    {
-      name: "Sophia Johnson",
-      service: "Childcare",
-      starRating: 4.7,
-      image: "./occupations/plumber.png",
-    },
-    {
-      name: "Daniel Lee",
-      service: "Gardener",
-      starRating: 4.5,
-      image: "./occupations/makeup.png",
-    },
-    {
-      name: "Olivia Martinez",
-      service: "House Cleaner",
-      starRating: 4.8,
-      image: "./occupations/plumber.png",
-    },
-    {
-      name: "Liam Wilson",
-      service: "DJ",
-      starRating: 4.9,
-      image: "./occupations/baber.png",
-    },
-    {
-      name: "Emma Davis",
-      service: "Makeup Artist",
-      starRating: 4.6,
-      image: "./occupations/makeup.png",
-    },
-    {
-      name: "Noah Taylor",
-      service: "IT Specialist",
-      starRating: 4.7,
-      image: "./occupations/hairdresser.png",
-    },
-    {
-      name: "Ava Harris",
-      service: "Fitness Coach",
-      starRating: 4.8,
-      image: "./occupations/makeup.png",
-    },
-  ];
+
+  // Extract necessary data from providersData
+  const servicesProviders = providersData.map((provider) => ({
+    id: provider.id,
+    name: provider.name,
+    service: provider.service,
+    starRating: provider.starRating,
+    image: provider.image,
+  }));
+
   const renderStars = (rating) => {
     const fullStar = Math.floor(rating);
     const halfStar = rating % 1 !== 0;
@@ -128,21 +80,25 @@ const Products = () => {
     for (let i = 0; i < fullStar; i++) {
       stars.push(<Star key={i} stroke="none" size={20} fill="orange" />);
     }
-  
+
     if (halfStar) {
       stars.push(<StarHalf key="half" stroke="none" size={20} fill="orange" />);
     }
     return stars;
   };
+
   return (
     <div className="bg-[#EDEBEB] flex flex-col justify-between">
       {/* Header */}
       <Header />
 
-      <div className=" bg-white flex flex-row justify-center items-center gap-14 p-2 md:p-8 ">
+      {/* Existing Hero Section */}
+      <div className=" bg-white flex flex-row justify-center items-center gap-14 p-2 md:p-8">
+        {/* Left img (hidden on mobile) */}
         <div className="hidden md:flex relative top-8 right-10">
           <img src="./leftLine.svg" className="w-10rem" alt="" />
         </div>
+        {/* Hero Content */}
         <div className="flex flex-col justify-center items-center gap-8 md:gap-14 p-2 md:p-8 md:mt-4">
           <div className="flex flex-col justify-center items-center gap-4 ">
             <h2 className="text-xl text-center md:text-4xl font-bold">
@@ -153,6 +109,7 @@ const Products = () => {
               work with people who need work done
             </p>
           </div>
+          {/* Location and search */}
           <div className="flex flex-row justify-between items-center gap-2 md:gap-4  ">
             <p className="text-sm md:text-xl font-medium">
               Find Service Providers in
@@ -161,6 +118,7 @@ const Products = () => {
               <MapPin size={15} /> NIGERIA
             </button>
           </div>
+          {/* Search Input */}
           <div className=" w-full flex flex-row justify-between items-center md:px-4 rounded-2xl">
             <input
               type="text"
@@ -177,12 +135,15 @@ const Products = () => {
             </div>
           </div>
         </div>
+        {/* Right img (hidden on mobile) */}
         <div className="hidden md:flex relative bottom-16 left-8">
           <img src="./rightLine.svg" alt="" />
         </div>
       </div>
 
+      {/* Categories and Carousel */}
       <div className="flex flex-col md:flex-row gap-8 p-4 md:p-8">
+        {/* Categories List */}
         <div className="w-full md:w-1/4 bg-white p-4 rounded-lg flex flex-col gap-4 justify-between">
           {categories.map((category, index) => (
             <div
@@ -194,20 +155,12 @@ const Products = () => {
             </div>
           ))}
         </div>
-        {/* <div className="w-full md:w-1/2">
-          <img
-            src="./heroImage.png"
-            alt=""
-            className="h-2/3 w-full rounded-t-lg"
-          />
-          <p className="bg-[#001F3F] p-2 text-center rounded-b-lg text-white">
-            Fashion Designer
-          </p>
-        </div> */}
+        {/* Carousel */}
         <div className="flex justify-center items-center m-auto w-full md:w-1/2">
           <Carousel />
         </div>
 
+        {/* How to use/Provide service boxes */}
         <div className=" flex  flex-col justify-between items-center gap-8">
           <div className="w-full md:w-[80%] h-1/2 bg-[#CBE9F4] pb-2 rounded-lg p-2 text-center flex flex-col justify-around shadow-md">
             <p className="text-2xl font-bold">How to use Directly ?</p>
@@ -225,23 +178,27 @@ const Products = () => {
         </div>
       </div>
 
+      {/* Trending Service Providers */}
       <div className="w-full flex flex-col md:p-8">
+        {/* Header */}
         <div className="w-full flex flex-row justify-between items-between m-auto bg-[#86DFFF] px-4 md:px-8 py-2 rounded-t-lg">
           <h2 className=" text-xs md:text-xl font-normal md:font-medium">
             Trending Service Providers
           </h2>
           <NavLink className="text-xs ">See all</NavLink>
         </div>
+        {/* Providers Grid */}
         <div className="bg-white grid grid-cols-1 md:grid-cols-4 justify-between items-center m-auto gap-10 md:gap-20 px-2 md:px-8 rounded-b-lg shadow-md py-8 md:py-12">
-          {servicesProviders.map((serviceProvider, index) => (
-            <div
-              key={index}
+          {servicesProviders.map((serviceProvider) => (
+            <Link
+              to={`/provider/${serviceProvider.id}`}
+              key={serviceProvider.id}
               className="w-full border flex flex-col gap-2 shadow-sm hover:shadow-md p-2 pb-4 md:p-4 rounded-lg"
             >
               <img src={serviceProvider.image} className="w-full rounded-lg" />
               <p className="font-bold text-xl">{serviceProvider.name}</p>
               <p>{serviceProvider.service}</p>
-              <div className="flex flex-col  items-start gap-4">
+              <div className="flex flex-col items-start gap-4">
                 <div className="w-full flex flex-row justify-between gap-1">
                   <div className="flex flex-row gap-1">
                     {renderStars(serviceProvider.starRating)}
@@ -252,10 +209,11 @@ const Products = () => {
                   Book Now
                 </button>
               </div>
-            </div>
+            </Link>
           ))}
         </div>
       </div>
+      {/* Footer */}
       <Footer />
     </div>
   );

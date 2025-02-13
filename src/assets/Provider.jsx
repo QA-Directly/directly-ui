@@ -1,58 +1,50 @@
-import {
-  Bell,
-  Heart,
-  MessageCircle,
-  User,
-  Search,
-  LogOut,
-  Menu,
-  X,
-  SendHorizontal,
-} from "lucide-react";
+import { SendHorizontal } from "lucide-react";
 import { Link, useNavigate, useParams } from "react-router-dom";
-import { useAuth } from "../Contexts/AuthContext";
-import { useProvider } from "../Contexts/ProviderContext";
-import { useState } from "react";
-import Header from "../components/Header";
+
+import Header from "./Header";
+
+// Import providers data
+import { providersData } from "../utils/ProvidersData";
+import Footer from "../components/Footer";
 
 function Provider() {
-  const { logout } = useAuth();
   const navigate = useNavigate();
   const { id } = useParams(); // Get the provider ID from URL
-  const { getProviderById } = useProvider();
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
 
-  // Get provider data
-  const provider = getProviderById(Number(id));
+  // Find provider by ID
+  const provider = providersData.find((p) => p.id === Number(id));
 
   if (!provider) {
     return <div>Provider not found</div>;
   }
-
-  // handle menu toggle (mobile)
-  const toggleMenu = () => {
-    setIsMenuOpen(!isMenuOpen);
+  const StarRating = ({ rating }) => {
+    return (
+      <div className="flex">
+        {[1, 2, 3, 4, 5].map((star) => (
+          <span key={star} className="text-xl">
+            {star <= rating ? (
+              <span className="text-gold">★</span>
+            ) : (
+              <span className="text-gold">☆</span>
+            )}
+          </span>
+        ))}
+      </div>
+    );
   };
-
-  // handle logout
-  const handleLogOut = () => {
-    logout();
-    navigate("/");
-  };
-
   return (
     <div className="bg-[#EDEBEB] flex flex-col justify-between">
       <Header />
 
-      {/*  profile*/}
+      {/*  profile */}
       <div className="w-[90%] md:w-4/5 rounded-2xl border-4 flex flex-row justify-evenly items-center mt-8 p-4 md:p-8 bg-white m-auto">
         <div className="hidden w-1/4 md:flex flex-col justify-center items-center gap-2">
           <img src={provider.image} className="rounded-full w-4/5" alt="" />
-          <p className="hidden md:flex bg-[#CBE9F4] w-2/3 p-1 rounded-3xl items-start mr-40 justify-center ">
+          <p className="hidden md:flex bg-[#CBE9F4] w-2/3 p-1 rounded-3xl items-start mr-40 justify-center">
             {provider.verifiedId ? "Verified ID" : "Unverified"}
           </p>
         </div>
-        <div className="w-full md:w-2/3 flex flex-col gap-4 ">
+        <div className="w-full md:w-2/3 flex flex-col gap-4">
           <div className="flex flex-row justify-between items-center">
             <img
               src={provider.image}
@@ -65,9 +57,9 @@ function Provider() {
             </div>
           </div>
           <div className="flex flex-col gap-4">
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-8 justify-between items-center ">
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-8 justify-between items-center">
               <div className="flex flex-col gap-1">
-                <h2 className="uppercase  text-xs md:text-lg font-medium ">
+                <h2 className="uppercase text-xs md:text-lg font-medium">
                   Service Category
                 </h2>
                 <p className="text-xs md:text-lg font-semibold">
@@ -92,7 +84,7 @@ function Provider() {
               </div>
               <div className="flex flex-col gap-1">
                 <h2 className="uppercase text-xs md:text-lg font-medium">
-                  LOCATION{" "}
+                  LOCATION
                 </h2>
                 <p className="text-xs md:text-lg font-semibold">
                   {provider.location}
@@ -100,13 +92,19 @@ function Provider() {
               </div>
             </div>
           </div>
-          <div className="flex flex-col md:flex-row w-full justify-between gap-4 md:gap-20 pt-4  md:p-4">
-            <button className="w-full rounded-xl p-3 bg-[#FF851B]">
+          <div className="flex flex-col md:flex-row w-full justify-between gap-4 md:gap-20 pt-4 md:p-4 text-center">
+            <Link
+              to={`/book/${provider.id}`}
+              className="w-full rounded-xl p-3 bg-[#FF851B]"
+            >
               BOOK NOW
-            </button>
-            <button className="w-full rounded-xl p-3 bg-[#CBE9F4]">
+            </Link>
+            <Link
+              to="/dashboard/messages"
+              className="w-full rounded-xl p-3 bg-[#CBE9F4]"
+            >
               Send a Message
-            </button>
+            </Link>
           </div>
         </div>
       </div>
@@ -114,47 +112,52 @@ function Provider() {
       {/* service descriptions */}
       <div className="w-[90%] md:w-4/5 rounded-2xl flex flex-row justify-evenly items-center mt-8 p-4 md:p-8 bg-white m-auto">
         <div className="flex flex-col gap-6">
-          <div className=" text-black text-xl font-bold uppercase">
+          <div className="text-black text-xl font-bold uppercase">
             Service Description
           </div>
-          <div className=" text-black text-sm md:text-lg font-light ">
+          <div className="text-black text-sm md:text-lg font-light">
             {provider.description}
           </div>
         </div>
       </div>
 
       {/* Review & Gallery */}
-      <div className="w-[90%] border-2 md:w-4/5 flex flex-col-reverse md:flex-row bg-[#edebeb] mt-8  rounded-2xl justify-between gap-12 items-start m-auto">
-        <div className=" bg-white rounded-2xl  pb-4 mb-12">
+      <div className="w-[90%] border-2 md:w-4/5 flex flex-col-reverse md:flex-row bg-[#edebeb] mt-8 rounded-2xl justify-between gap-12 items-start m-auto">
+        <div className="w-1/3 bg-white rounded-2xl pb-4 mb-12 ">
           <div className="w-full bg-[#86dfff] rounded-t-2xl p-4 text-[#001f3f] text-center font-bold text-xl">
             Reviews
           </div>
-          <div className="flex flex-col  gap-40 p-2">
-            <div className="h-full flex flex-col justify-between items-center">
+          <div className="flex flex-col p-4">
+            <div className="flex flex-col">
               {provider.reviews.map((review, index) => (
-                <div key={index} className="flex flex-col border-b-2 p-2 gap-4">
-                  <div className="flex flex-row justify-between items-center">
-                    <h2 className="font-bold text-xl">{review.name}</h2>
-                    <p>{review.rating} stars</p>
+                <div
+                  key={index}
+                  className="flex flex-col border-b border-gray-200 py-3"
+                >
+                  <div className="flex justify-between items-center mb-1">
+                    <h2 className="font-semibold text-lg">{review.name}</h2>
+                    <StarRating rating={review.rating} />
                   </div>
-                  <p>{review.text}</p>
+                  <p className="text-gray-700">{review.text}</p>
                 </div>
               ))}
-              <p className="underline mt-4 text-[#001f3f]">View more reviews</p>
             </div>
-            <div className="w-full flex justify-center m-auto px-4">
+            <button className="text-[#001f3f] underline text-center mt-4">
+              View more reviews
+            </button>
+            <div className="w-full flex items-center relative mt-8">
               <input
                 type="text"
                 placeholder="Leave a review"
-                className="w-full m-auto outline-none rounded-lg p-2 bg-[#edebeb] shadow-md"
+                className="w-full outline-none rounded-lg p-2 bg-[#edebeb] pr-12"
               />
-              <div className="relative right-10 top-2 text-[#ff851b]">
-                <SendHorizontal />
-              </div>
+              <button className="absolute right-3 text-gold">
+                <SendHorizontal size={20} />
+              </button>
             </div>
           </div>
         </div>
-        <div className="w-full md:w-[60%] bg-white rounded-2xl pb-4">
+        <div className="w-full md:w-[60%] bg-white rounded-2xl pb-4 mb-12">
           <div className="bg-[#001f3f] rounded-t-2xl p-4 text-white text-center font-bold text-xl">
             Gallery
           </div>
@@ -172,6 +175,7 @@ function Provider() {
           </div>
         </div>
       </div>
+      <Footer />
     </div>
   );
 }

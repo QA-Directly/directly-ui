@@ -1,4 +1,4 @@
-import { Route, Routes } from "react-router-dom";
+import { Navigate, Route, Routes } from "react-router-dom";
 import SignIn from "./pages/SignIn";
 import SignUp from "./pages/SignUp";
 import ForgotPassword from "./pages/ForgotPassword";
@@ -14,7 +14,7 @@ import { ProviderContextProvider } from "./Contexts/ProviderContext";
 import SearchResult from "./pages/SearchResult";
 import ProviderApplication from "./pages/ProviderApplication";
 import Dashboard from "./pages/Dashboard";
-import Provider from "./pages/Provider";
+import Provider from "./assets/Provider";
 import Profile from "./components/Dashoard/Profile";
 import Messages from "./components/Dashoard/Messages";
 import Transactions from "./components/Dashoard/Transactions";
@@ -22,10 +22,34 @@ import Notifications from "./components/Dashoard/Notifications";
 import ResetPassword from "./components/Dashoard/ResetPassword";
 import SavedProviders from "./components/Dashoard/SavedProviders";
 import Bookings from "./components/Dashoard/Bookings";
+import Booking from "./pages/Booking";
+import Admin from "./pages/Admin";
+import FileUpload from "./components/Dashoard/FileUpload";
+
+// New AdminRoute component for protected admin routes
+const AdminRoute = ({ children }) => {
+  const { user, authenticated } = useAuth();
+
+  if (!authenticated || user?.email !== "admin@directly.com") {
+    return <Navigate to="/signin" />;
+  }
+
+  return children;
+};
 
 const RootRoute = () => {
-  const { authenticated } = useAuth();
-  return authenticated ? <Products /> : <Home />;
+  const { authenticated, user } = useAuth();
+
+  if (!authenticated) {
+    return <Home />;
+  }
+
+  // Redirect admin to admin dashboard
+  if (user?.email === "admin@directly.com") {
+    return <Navigate to="/admin/dashboard" />;
+  }
+
+  return <Products />;
 };
 
 function App() {
@@ -34,17 +58,33 @@ function App() {
       <ProviderContextProvider>
         <Routes>
           <Route path="/" element={<RootRoute />} />
+
+          {/* Admin Routes */}
+          <Route
+            path="/admin/*"
+            element={
+              <AdminRoute>
+                <Routes>
+                  <Route path="dashboard" element={<Admin />} />
+                  {/* Add more admin routes here as needed */}
+                </Routes>
+              </AdminRoute>
+            }
+          />
+
+          {/* Protected User Routes */}
           <Route element={<ProtectedRoute />}>
             <Route path="/products" element={<Products />} />
             <Route path="/profile" element={<Provider />} />
-            {/* Updated provider routes */}
             <Route path="/provider/:id" element={<Provider />} />
+            <Route path="/book/:id" element={<Booking />} />
             <Route
               path="/provider/application"
               element={<ProviderApplication />}
             />
             <Route path="/dashboard" element={<Dashboard />}>
               <Route path="profile" element={<Profile />} />
+              <Route path="upload" element={<FileUpload />} />
               <Route path="messages" element={<Messages />} />
               <Route path="transactions" element={<Transactions />} />
               <Route path="notifications" element={<Notifications />} />
@@ -53,6 +93,8 @@ function App() {
               <Route path="resetPassword" element={<ResetPassword />} />
             </Route>
           </Route>
+
+          {/* Public Routes */}
           <Route path="/signin" element={<SignIn />} />
           <Route path="/signup" element={<SignUp />} />
           <Route path="/verify-email" element={<VerifyEmail />} />

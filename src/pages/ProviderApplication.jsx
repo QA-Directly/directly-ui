@@ -2,10 +2,125 @@ import { CirclePlus } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../Contexts/AuthContext";
+import axios from "axios";
 
 function ProviderApplication() {
   const navigate = useNavigate();
+  const [user, setUser] = useState({});
+  const [states, setStates] = useState([]);
+  const [cities, setCities] = useState([]);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isSubmitted, setIsSubmitted] = useState(false);
+  const [currentStep, setCurrentStep] = useState(1);
+  const [error, setError] = useState("");
+  const [formData, setFormData] = useState({
+    firstName: "",
+    lastName: "", // Changed from "surname" to "lastName"
+    email: "",
+    country: "",
+    state: "",
+    city: "",
+    address: "",
+    phoneNumber: "",
+    gender: "",
+    businessName: "",
+    category: "",
+    description: "",
+    idImage: null, // Alias for identificationDoc (if needed)
+  });
+
+  const steps = [
+    { number: 1, text: "Fill Personal details" },
+    { number: 2, text: "Fill Service details" },
+    { number: 3, text: "Upload valid means of identification" },
+    { number: 4, text: "Submit application" },
+    { number: 5, text: "Wait for review" },
+  ];
+
   const { axiosInstance, authenticated } = useAuth();
+
+  // fetch states
+  const getStates = async () => {
+    try {
+      const response = await axios.get(
+        "https://nga-states-lga.onrender.com/fetch "
+      );
+      setStates(response.data);
+    } catch (error) {
+      console.error("error message: ", error);
+    }
+  };
+
+  // fetch cities
+  // Fetch cities
+  const getCities = async (state) => {
+    if (!state) {
+      setCities([]);
+      return;
+    }
+
+    try {
+      const response = await axios.get(
+        `https://nga-states-lga.onrender.com/?state=${encodeURIComponent(
+          state
+        )}`
+      );
+      setCities(response.data || []);
+    } catch (error) {
+      console.error("Error fetching cities:", error);
+      setCities([]);
+    }
+  };
+
+  // UseEffects
+
+  // get state
+  useEffect(() => {
+    getStates();
+  });
+  // get cities
+  useEffect(() => {
+    if (formData.state) {
+      getCities(formData.state);
+    } else {
+      setCities([]);
+    }
+  }, [formData.state]);
+
+  // Fetch user profile once when the component mounts
+  useEffect(() => {
+    const fetchUserProfile = async () => {
+      try {
+        const response = await axios.get(
+          "https://directly-core.onrender.com/auth/profile",
+          {
+            withCredentials: true, // Include credentials (cookies) in the request
+          }
+        );
+        setUser(response.data);
+      } catch (error) {
+        console.error(
+          "Failed to fetch user profile:",
+          error.response?.data || error.message
+        );
+      }
+    };
+
+    fetchUserProfile();
+  }, []);
+
+  // Update the form data with the profile info once it's fetched
+  useEffect(() => {
+    if (user && Object.keys(user).length > 0) {
+      // Here we assume your API returns firstName, lastName, and email
+      setFormData((prev) => ({
+        ...prev,
+        firstName: user.firstName || "",
+        lastName: user.lastName || "", // Using lastName instead of surname
+        email: user.email || "",
+      }));
+    }
+  }, [user]);
 
   // Redirect if not authenticated
   useEffect(() => {
@@ -16,33 +131,6 @@ function ProviderApplication() {
       });
     }
   }, [authenticated, navigate]);
-
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [isSubmitted, setIsSubmitted] = useState(false);
-  const [currentStep, setCurrentStep] = useState(1);
-  const [error, setError] = useState("");
-  const [formData, setFormData] = useState({
-    firstName: "Abdullahi",
-    surname: "Ismail",
-    email: "abdullahabuaslam@gmail.com",
-    state: "Kaduna",
-    city: "Zaria",
-    businessAddress: "20, Adams street, magodo phase 2, Lagos",
-    phoneNumber: "+2347035974746",
-    gender: "Male",
-    businessName: "",
-    serviceCategory: "ICT",
-    serviceDescription: "",
-    identificationDoc: null,
-  });
-
-  const steps = [
-    { number: 1, text: "Fill Personal details" },
-    { number: 2, text: "Fill Service details" },
-    { number: 3, text: "Upload valid means of identification" },
-    { number: 4, text: "Submit application" },
-    { number: 5, text: "Wait for review" },
-  ];
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -62,6 +150,7 @@ function ProviderApplication() {
       setFormData((prev) => ({
         ...prev,
         identificationDoc: file,
+        idImage: file.name, // if your backend expects a string
       }));
       setCurrentStep(4);
     }
@@ -73,22 +162,31 @@ function ProviderApplication() {
     setError("");
 
     try {
-      const formDataToSend = new FormData();
-      Object.keys(formData).forEach((key) => {
-        if (key === "identificationDoc" && formData[key]) {
-          formDataToSend.append("identificationDoc", formData[key]);
-        } else if (formData[key]) {
-          formDataToSend.append(key, formData[key]);
-        }
-      });
+      // Create the request body object exactly matching the API's expected format
+      const requestBody = {
+        businessName: formData.businessName,
+        address: formData.businessAddress,
+        city: formData.city,
+        state: formData.state,
+        country: "Nigeria",
+        phoneNumber: formData.phoneNumber,
+        email: formData.email,
+        category: formData.serviceCategory,
+        description: formData.serviceDescription,
+        idImage: formData.identificationDoc
+          ? formData.identificationDoc.name
+          : "",
+      };
+
+      // Debug logging
+      console.log("Request body being sent:", requestBody);
 
       const response = await axiosInstance.post(
         "/users/apply-for-vendor",
-        formDataToSend,
+        requestBody,
         {
           headers: {
-            // Remove explicit Content-Type to let browser set it for FormData
-            "Content-Type": "multipart/form-data",
+            "Content-Type": "application/json", // Changed to JSON since we're not sending files
           },
         }
       );
@@ -98,26 +196,12 @@ function ProviderApplication() {
         setCurrentStep(5);
       }
     } catch (error) {
-      if (error.response?.status === 401) {
-        // Try to refresh token first before redirecting
-        try {
-          await axiosInstance.post("/auth/refresh");
-          // If refresh successful, retry the submission
-          return handleSubmit(e);
-        } catch (refreshError) {
-          setError("Session expired. Please log in again.");
-          navigate("/signin", {
-            replace: true,
-            state: { from: "/provider-application" },
-          });
-        }
-      } else {
-        setError(
-          error.response?.data?.message ||
-            error.message ||
-            "Failed to submit application. Please try again."
-        );
-      }
+      console.error("Error response data:", error.response?.data);
+      setError(
+        error.response?.data?.message ||
+          error.message ||
+          "Failed to submit application. Please try again."
+      );
     } finally {
       setIsSubmitting(false);
     }
@@ -160,12 +244,11 @@ function ProviderApplication() {
                 <div key={step.number} className="flex items-center">
                   <div className="flex flex-col items-center">
                     <span
-                      className={`w-10 h-10 md:w-12 md:h-12 rounded-full flex justify-center items-center text-sm md:text-base font-bold
-                     ${
-                       step.number <= currentStep
-                         ? "bg-primary text-white"
-                         : "bg-ash text-black"
-                     }`}
+                      className={`w-10 h-10 md:w-12 md:h-12 rounded-full flex justify-center items-center text-sm md:text-base font-bold ${
+                        step.number <= currentStep
+                          ? "bg-primary text-white"
+                          : "bg-ash text-black"
+                      }`}
                     >
                       {step.number}
                     </span>
@@ -231,8 +314,7 @@ function ProviderApplication() {
               <div key={step.number} className="flex items-center">
                 <div className="flex flex-col items-center">
                   <span
-                    className={`w-10 h-10 md:w-12 md:h-12 rounded-full flex justify-center items-center text-sm md:text-base font-bold
-                    ${
+                    className={`w-10 h-10 md:w-12 md:h-12 rounded-full flex justify-center items-center text-sm md:text-base font-bold ${
                       step.number <= currentStep || isStepComplete(step.number)
                         ? "bg-primary text-white"
                         : "bg-ash text-black"
@@ -283,24 +365,24 @@ function ProviderApplication() {
                   name="firstName"
                   value={formData.firstName}
                   readOnly
-                  className="w-full bg-ash/40 border border-gray-300 rounded py-4 px-3 focus:outline-none focus:ring"
+                  className="w-full bg-ash/40 border border-gray-300 rounded py-4 px-3"
                   disabled
                 />
               </div>
               <div>
                 <label
-                  htmlFor="surname"
+                  htmlFor="lastName"
                   className="block text-gray-700 font-medium mb-2"
                 >
-                  Surname
+                  Last Name
                 </label>
                 <input
                   type="text"
-                  id="surname"
-                  name="surname"
-                  value={formData.surname}
+                  id="lastName"
+                  name="lastName"
+                  value={formData.lastName}
                   readOnly
-                  className="w-full bg-ash/40 border border-gray-300 rounded py-4 px-3 focus:outline-none focus:ring"
+                  className="w-full bg-ash/40 border border-gray-300 rounded py-4 px-3"
                   disabled
                 />
               </div>
@@ -319,7 +401,7 @@ function ProviderApplication() {
                 name="email"
                 value={formData.email}
                 readOnly
-                className="w-full bg-ash/40 border border-gray-300 rounded py-4 px-3 focus:outline-none focus:ring focus:border-blue-500"
+                className="w-full bg-ash/40 border border-gray-300 rounded py-4 px-3"
                 disabled
               />
             </div>
@@ -336,9 +418,14 @@ function ProviderApplication() {
                   name="state"
                   value={formData.state}
                   onChange={handleInputChange}
-                  className="w-full border-gray-300 border rounded py-4 px-3 focus:outline-none focus:ring focus:border-blue-500"
+                  className="w-full border-gray-300 border rounded py-4 px-3"
                 >
-                  <option value="Kaduna">Kaduna</option>
+                  <option value="">Select State</option>
+                  {states.map((state, index) => (
+                    <option key={index} value={state}>
+                      {state}
+                    </option>
+                  ))}
                 </select>
               </div>
               <div>
@@ -353,9 +440,14 @@ function ProviderApplication() {
                   name="city"
                   value={formData.city}
                   onChange={handleInputChange}
-                  className="w-full border-gray-300 border rounded py-4 px-3 focus:outline-none focus:ring focus:border-blue-500"
+                  className="w-full border-gray-300 border rounded py-4 px-3"
                 >
-                  <option value="Zaria">Zaria</option>
+                  <option value="">Select City</option>
+                  {cities.map((city, index) => (
+                    <option key={index} value={city}>
+                      {city}
+                    </option>
+                  ))}
                 </select>
               </div>
             </div>
@@ -372,7 +464,7 @@ function ProviderApplication() {
                 name="businessAddress"
                 value={formData.businessAddress}
                 onChange={handleInputChange}
-                className="w-full border-gray-300 border rounded py-4 px-3 focus:outline-none focus:ring focus:border-blue-500"
+                className="w-full border-gray-300 border rounded py-4 px-3"
               />
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
@@ -389,23 +481,25 @@ function ProviderApplication() {
                   name="phoneNumber"
                   value={formData.phoneNumber}
                   onChange={handleInputChange}
-                  className="w-full border-gray-300 border rounded py-4 px-3 focus:outline-none focus:ring focus:border-blue-500"
+                  className="w-full border-gray-300 border rounded py-4 px-3"
                 />
               </div>
               <div>
                 <label
-                  htmlFor="state"
+                  htmlFor="gender"
                   className="block text-gray-700 font-medium mb-2"
                 >
                   Gender
                 </label>
+                {/* Corrected the name and id for Gender */}
                 <select
-                  id="state"
-                  name="state"
+                  id="gender"
+                  name="gender"
                   value={formData.gender}
                   onChange={handleInputChange}
-                  className="w-full border-gray-300 border rounded py-4 px-3 focus:outline-none focus:ring focus:border-blue-500"
+                  className="w-full border-gray-300 border rounded py-4 px-3"
                 >
+                  <option value="">Select Gender</option>
                   <option value="Male">Male</option>
                   <option value="Female">Female</option>
                 </select>
@@ -428,7 +522,7 @@ function ProviderApplication() {
                 value={formData.businessName}
                 onChange={handleInputChange}
                 placeholder="Enter business name"
-                className="w-full border-gray-300 border rounded py-4 px-3 focus:outline-none focus:ring focus:border-blue-500"
+                className="w-full border-gray-300 border rounded py-4 px-3"
               />
             </div>
             <div className="mb-4">
@@ -443,11 +537,12 @@ function ProviderApplication() {
                 name="serviceCategory"
                 value={formData.serviceCategory}
                 onChange={handleInputChange}
-                className="w-full border-gray-300 border rounded py-4 px-3 focus:outline-none focus:ring focus:border-blue-500"
+                className="w-full border-gray-300 border rounded py-4 px-3"
               >
                 <option value="">
                   What category is your business under? e.g. health & beauty
                 </option>
+                <option value="ICT">ICT</option>
               </select>
             </div>
             <div className="mb-4">
@@ -463,7 +558,7 @@ function ProviderApplication() {
                 value={formData.serviceDescription}
                 onChange={handleInputChange}
                 placeholder="Describe the services you are offering"
-                className="w-full border-gray-300 border rounded py-4 px-3 focus:outline-none focus:ring focus:border-blue-500 h-32"
+                className="w-full border-gray-300 border rounded py-4 px-3 h-32"
               ></textarea>
             </div>
           </section>
@@ -474,7 +569,6 @@ function ProviderApplication() {
             >
               Upload Valid I.D
             </label>
-
             <div className="mb-4 border h-52 flex flex-col justify-center items-center rounded-lg hover:bg-ash/40 transition">
               <label className="cursor-pointer flex flex-col gap-4 justify-center items-center">
                 <input
@@ -496,7 +590,6 @@ function ProviderApplication() {
               </label>
             </div>
           </section>
-
           <button
             type="submit"
             disabled={isSubmitting || !isStepComplete(3)}

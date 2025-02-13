@@ -4,7 +4,7 @@ import axios from "axios";
 // Create axios instance with base configuration
 const axiosInstance = axios.create({
   baseURL: "https://directly-core.onrender.com",
-  withCredentials: true, // Ensure cookies are sent with requests
+  withCredentials: true,
   headers: {
     "Content-Type": "application/json",
   },
@@ -12,15 +12,106 @@ const axiosInstance = axios.create({
 
 const AuthContext = createContext(null);
 
+// Add local storage keys
+const AUTH_STATUS_KEY = "auth_status";
+const USER_DATA_KEY = "user_data";
+const TOKEN_REFRESH_INTERVAL = 25 * 60 * 1000; // 25 minutes in milliseconds
+
 export const AuthProvider = ({ children }) => {
-  const [authenticated, setAuthenticated] = useState(false);
-  const [user, setUser] = useState(null);
+  // Initialize state from local storage
+  const [authenticated, setAuthenticated] = useState(() => {
+    const stored = localStorage.getItem(AUTH_STATUS_KEY);
+    return stored ? JSON.parse(stored) : false;
+  });
+
+  const [user, setUser] = useState(() => {
+    const stored = localStorage.getItem(USER_DATA_KEY);
+    return stored ? JSON.parse(stored) : null;
+  });
+
   const [isLoading, setIsLoading] = useState(true);
   const [isLoggingIn, setIsLoggingIn] = useState(false);
+  const [refreshInterval, setRefreshInterval] = useState(null);
 
-  // Check if the user is authenticated on component mount
+  // Persist authentication state to local storage
+  useEffect(() => {
+    if (authenticated) {
+      localStorage.setItem(AUTH_STATUS_KEY, JSON.stringify(authenticated));
+    } else {
+      localStorage.removeItem(AUTH_STATUS_KEY);
+    }
+  }, [authenticated]);
+
+  useEffect(() => {
+    if (user) {
+      localStorage.setItem(USER_DATA_KEY, JSON.stringify(user));
+    } else {
+      localStorage.removeItem(USER_DATA_KEY);
+    }
+  }, [user]);
+
+  // Handle token refresh
+  const refreshToken = async () => {
+    // Skip token refresh for admin user
+    if (user?.email === "admin@directly.com") {
+      return true;
+    }
+
+    try {
+      const response = await axiosInstance.post("/auth/refresh");
+      if (response.data?.user) {
+        setUser(response.data.user);
+      }
+      return true;
+    } catch (error) {
+      console.error("Token refresh failed:", error);
+      if (error.response?.status === 401) {
+        setAuthenticated(false);
+        setUser(null);
+        clearRefreshInterval();
+      }
+      return false;
+    }
+  };
+
+  const clearRefreshInterval = () => {
+    if (refreshInterval) {
+      clearInterval(refreshInterval);
+      setRefreshInterval(null);
+    }
+  };
+
+  // Set up token refresh interval when authenticated
+  useEffect(() => {
+    // Skip refresh interval for admin user
+    if (authenticated && user?.email !== "admin@directly.com") {
+      // Initial refresh
+      refreshToken();
+
+      // Set up periodic refresh
+      const interval = setInterval(refreshToken, TOKEN_REFRESH_INTERVAL);
+      setRefreshInterval(interval);
+    } else {
+      clearRefreshInterval();
+    }
+
+    return () => clearRefreshInterval();
+  }, [authenticated, user]);
+
+  // Check auth status on mount and after window focus
   useEffect(() => {
     const checkAuth = async () => {
+      if (!authenticated) {
+        setIsLoading(false);
+        return;
+      }
+
+      // Skip auth check for admin user
+      if (user?.email === "admin@directly.com") {
+        setIsLoading(false);
+        return;
+      }
+
       try {
         const response = await axiosInstance.get("/auth/profile");
         if (response.data) {
@@ -28,45 +119,61 @@ export const AuthProvider = ({ children }) => {
           setUser(response.data);
         }
       } catch (error) {
+        if (error.response?.status === 401) {
+          setAuthenticated(false);
+          setUser(null);
+        }
         console.error("Authentication check failed:", error);
       } finally {
-        setIsLoading(false); // Set loading to false regardless of outcome
+        setIsLoading(false);
       }
     };
-    checkAuth();
-  }, []);
 
-  // Login function
+    checkAuth();
+
+    const handleFocus = () => {
+      if (authenticated && user?.email !== "admin@directly.com") {
+        checkAuth();
+      }
+    };
+
+    window.addEventListener("focus", handleFocus);
+    return () => window.removeEventListener("focus", handleFocus);
+  }, [authenticated, user]);
+
   const login = async (email, password) => {
-    console.log("Starting login attempt");
-    setIsLoading(true);
     setIsLoggingIn(true);
+    setIsLoading(true);
 
     try {
+      // Handle admin login
+      if (email === "admin@directly.com" && password === "admin") {
+        const adminUser = {
+          email: "admin@directly.com",
+          role: "admin",
+          name: "Admin User",
+          isAdmin: true,
+        };
+        setAuthenticated(true);
+        setUser(adminUser);
+        localStorage.setItem(USER_DATA_KEY, JSON.stringify(adminUser));
+        localStorage.setItem(AUTH_STATUS_KEY, "true");
+        return { user: adminUser };
+      }
+
+      // Normal user login
       const response = await axiosInstance.post("/auth/login", {
         email,
         password,
       });
 
       if (response.data) {
-        console.log("Response Data: ", response.data);
-        setUser(response.data); // Store user data
+        const profileResponse = await axiosInstance.get("/auth/profile");
 
-        // Verify session immediately
-        try {
-          const profileResponse = await axiosInstance.get("/auth/profile");
-          console.log("Profile Response:", profileResponse.data); // Debug log
-          if (profileResponse.data) {
-            setAuthenticated(true);
-            setUser((prevUser) => ({ ...prevUser, ...profileResponse.data }));
-            return response.data;
-          }
-        } catch (error) {
-          console.error(
-            "Profile verification failed:",
-            error.response?.data || error.message
-          );
-          throw new Error("Session verification failed");
+        if (profileResponse.data) {
+          setAuthenticated(true);
+          setUser(profileResponse.data);
+          return response.data;
         }
       }
     } catch (error) {
@@ -79,47 +186,54 @@ export const AuthProvider = ({ children }) => {
       setIsLoggingIn(false);
     }
   };
-  // Logout function
+
   const logout = async () => {
-    try {
-      await axiosInstance.post("/auth/logout");
-      setAuthenticated(false);
-      setUser(null);
-    } catch (error) {
-      console.error("Logout error:", error);
-      // Clear auth state even if logout API fails
-      setAuthenticated(false);
-      setUser(null);
+    // Skip server logout for admin user
+    if (user?.email !== "admin@directly.com") {
+      try {
+        await axiosInstance.post("/auth/logout");
+      } catch (error) {
+        console.error("Logout error:", error);
+      }
     }
+
+    // Clear auth state regardless of user type
+    setAuthenticated(false);
+    setUser(null);
+    localStorage.removeItem(AUTH_STATUS_KEY);
+    localStorage.removeItem(USER_DATA_KEY);
   };
 
-  // Add a single response interceptor for handling refresh and auth errors
+  // Enhanced axios interceptor
   axiosInstance.interceptors.response.use(
     (response) => response,
     async (error) => {
       const originalRequest = error.config;
 
-      // Handle 401 Unauthorized errors
+      // Skip token refresh for admin user
+      if (user?.email === "admin@directly.com") {
+        return Promise.reject(error);
+      }
+
       if (
         error.response?.status === 401 &&
-        !isLoggingIn && // Avoid infinite loops during login
-        !originalRequest.url?.includes("/auth/refresh") && // Prevent retrying refresh endpoint
-        !originalRequest._retry && // Prevent retrying the same request multiple times
-        authenticated // Only attempt refresh if we think we're authenticated
+        !isLoggingIn &&
+        !originalRequest.url?.includes("/auth/refresh") &&
+        !originalRequest._retry &&
+        authenticated
       ) {
         originalRequest._retry = true;
 
         try {
-          const refreshResponse = await axiosInstance.post("/auth/refresh");
-
-          if (refreshResponse.status === 200) {
-            // Retry the original request with fresh tokens
+          const refreshSuccess = await refreshToken();
+          if (refreshSuccess) {
             return axiosInstance(originalRequest);
           }
         } catch (refreshError) {
-          console.error("Token refresh failed:", refreshError);
-          setAuthenticated(false);
-          setUser(null);
+          if (refreshError.response?.status === 401) {
+            setAuthenticated(false);
+            setUser(null);
+          }
           return Promise.reject(refreshError);
         }
       }

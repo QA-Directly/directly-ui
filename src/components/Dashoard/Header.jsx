@@ -1,6 +1,6 @@
 import { Bell, Search } from "lucide-react";
 import React from "react";
-import user from "../../../public/occupations/plumber.png";
+import user from "../../assets/occupations/plumber.png";
 
 function Header() {
   return (
