@@ -29,9 +29,8 @@ import { useAuth } from "../Contexts/AuthContext";
 import { useState } from "react";
 import Carousel from "../components/Carousel";
 import Header from "../assets/Header";
+import { useProvider } from "../Contexts/ProviderContext";
 
-// Import providers data
-import { providersData } from "../utils/ProvidersData"; // Assuming default export
 // import images
 
 const Products = () => {
@@ -63,15 +62,9 @@ const Products = () => {
     { name: "Fitness & Personal Training Services", icon: Dumbbell },
   ];
 
-  // Extract necessary data from providersData
-  const servicesProviders = providersData.map((provider) => ({
-    id: provider.id,
-    name: provider.name,
-    service: provider.service,
-    starRating: provider.starRating,
-    image: provider.image,
-  }));
-
+  // get data from context
+  const { providers, loading, error } = useProvider();
+// render stars
   const renderStars = (rating) => {
     const fullStar = Math.floor(rating);
     const halfStar = rating % 1 !== 0;
@@ -86,6 +79,23 @@ const Products = () => {
     }
     return stars;
   };
+  // loading
+
+   if (loading) {
+     return (
+       <div className="flex justify-center items-center min-h-screen">
+         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#FF851B]"></div>
+       </div>
+     );
+   }
+
+   if (error) {
+     return (
+       <div className="flex justify-center items-center min-h-screen text-red-500">
+         Error loading providers: {error}
+       </div>
+     );
+   }
 
   return (
     <div className="bg-[#EDEBEB] flex flex-col justify-between">
@@ -189,7 +199,7 @@ const Products = () => {
         </div>
         {/* Providers Grid */}
         <div className="bg-white grid grid-cols-1 md:grid-cols-4 justify-between items-center m-auto gap-10 md:gap-20 px-2 md:px-8 rounded-b-lg shadow-md py-8 md:py-12">
-          {servicesProviders.map((serviceProvider) => (
+          {providers.map((serviceProvider) => (
             <Link
               to={`/provider/${serviceProvider.id}`}
               key={serviceProvider.id}

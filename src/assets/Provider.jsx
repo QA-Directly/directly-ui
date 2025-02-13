@@ -1,22 +1,18 @@
 import { SendHorizontal } from "lucide-react";
 import { Link, useNavigate, useParams } from "react-router-dom";
+import { useProvider } from "../Contexts/ProviderContext";
 
 import Header from "./Header";
 
 // Import providers data
-import { providersData } from "../utils/ProvidersData";
+// import { providersData } from "../utils/ProvidersData";
+
 import Footer from "../components/Footer";
 
 function Provider() {
-  const navigate = useNavigate();
+  const { getProviderById, loading, error } = useProvider();
   const { id } = useParams(); // Get the provider ID from URL
 
-  // Find provider by ID
-  const provider = providersData.find((p) => p.id === Number(id));
-
-  if (!provider) {
-    return <div>Provider not found</div>;
-  }
   const StarRating = ({ rating }) => {
     return (
       <div className="flex">
@@ -32,6 +28,32 @@ function Provider() {
       </div>
     );
   };
+
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center min-h-screen">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#FF851B]"></div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="flex justify-center items-center min-h-screen text-red-500">
+        Error loading provider: {error}
+      </div>
+    );
+  }
+
+  const provider = getProviderById(id);
+
+  if (!provider) {
+    return (
+      <div className="flex justify-center items-center min-h-screen">
+        Provider not found
+      </div>
+    );
+  }
   return (
     <div className="bg-[#EDEBEB] flex flex-col justify-between">
       <Header />

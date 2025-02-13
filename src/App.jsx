@@ -19,12 +19,12 @@ import Profile from "./components/Dashoard/Profile";
 import Messages from "./components/Dashoard/Messages";
 import Transactions from "./components/Dashoard/Transactions";
 import Notifications from "./components/Dashoard/Notifications";
-import ResetPassword from "./components/Dashoard/ResetPassword";
 import SavedProviders from "./components/Dashoard/SavedProviders";
 import Bookings from "./components/Dashoard/Bookings";
 import Booking from "./pages/Booking";
 import Admin from "./pages/Admin";
 import FileUpload from "./components/Dashoard/FileUpload";
+import ResetPassword from "./components/Dashoard/ResetPassword";
 
 // New AdminRoute component for protected admin routes
 const AdminRoute = ({ children }) => {
