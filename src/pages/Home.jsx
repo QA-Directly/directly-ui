@@ -1,16 +1,13 @@
 import { MapPin, Search, SlidersVertical } from "lucide-react";
 import { Link } from "react-router-dom";
 import Slider from "../components/Slider";
-import {
-  FaFacebook,
-  FaInstagram,
-  FaLinkedin,
-  FaXTwitter,
-} from "react-icons/fa6";
+
 import { Menu, X } from "lucide-react";
 import Footer from "../components/Footer";
 import { useState } from "react";
 import SearchBar from "../components/SearchBar";
+import icon from "../assets/directlyicon.png";
+import name from "../assets/directlyname.png";
 
 const Home = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -28,15 +25,11 @@ const Home = () => {
             {/* Logo container */}
             <div className="flex items-center gap-2 ">
               <img
-                src="./directlyicon.png"
+                src={icon}
                 className="w-8 h-8 md:w-12 md:h-12"
                 alt="Directly Icon"
               />
-              <img
-                src="./directlyname.png"
-                className="w-32 md:w-40"
-                alt="Directly Name"
-              />
+              <img src={name} className="w-32 md:w-40" alt="Directly Name" />
             </div>
 
             {/* Search bar - desktop only */}

@@ -1,5 +1,8 @@
 import { useState, useEffect } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
+import wellness from "../assets/services/directl1.png";
+import cleaning from "../assets/services/directly2.png";
+import ict from "../assets/services/directly3.png";
 
 const ServiceSlider = () => {
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -19,17 +22,17 @@ const ServiceSlider = () => {
   const services = [
     {
       title: "Health & Beauty",
-      image: "./services/directl1.png",
+      image: wellness,
       description: "Professional beauty and wellness services",
     },
     {
       title: "Cleaning Services",
-      image: "./services/directly2.png",
+      image: cleaning,
       description: "Expert cleaning solutions",
     },
     {
       title: "Computer & IT Services",
-      image: "./services/directly3.png",
+      image: ict,
       description: "Technical support and repairs",
     },
     // Add more services as needed
