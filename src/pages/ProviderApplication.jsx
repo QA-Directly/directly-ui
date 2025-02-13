@@ -3,6 +3,8 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../Contexts/AuthContext";
 import axios from "axios";
+import icon from "../assets/directlyicon.png";
+import name from "../assets/directlyname.png";
 
 function ProviderApplication() {
   const navigate = useNavigate();
@@ -233,8 +235,8 @@ function ProviderApplication() {
     return (
       <div className="bg-gray-100 min-h-screen">
         <header className="bg-primary flex flex-row gap-2 justify-center items-center py-8">
-          <img src="directlyicon.png" alt="Directly" className="h-8" />
-          <img src="directlyname.png" alt="Directly" className="h-8" />
+          <img src={icon} alt="Directly" className="h-8" />
+          <img src={name} alt="Directly" className="h-8" />
         </header>
 
         <main className="w-[90%] md:w-4/5 flex flex-col gap-4 justify-center items-center m-auto">
@@ -288,8 +290,8 @@ function ProviderApplication() {
   return (
     <div className="w-full bg-gray-100">
       <header className="bg-primary flex flex-row gap-2 justify-center items-center py-8">
-        <img src="directlyicon.png" alt="Directly" className="h-8" />
-        <img src="directlyname.png" alt="Directly" className="h-8" />
+        <img src={icon} alt="Directly" className="h-8" />
+        <img src={name} alt="Directly" className="h-8" />
       </header>
 
       <main className="w-4/5 md:w-4/5 flex flex-col gap-4 justify-center items-center m-auto">
