@@ -45,7 +45,8 @@ function ProviderApplication() {
   const getStates = async () => {
     try {
       const response = await axios.get(
-        "https://nga-states-lga.onrender.com/fetch "
+        "https://nga-states-lga.onrender.com/fetch ",
+        { withCredentials: false }
       );
       setStates(response.data);
     } catch (error) {
@@ -65,7 +66,8 @@ function ProviderApplication() {
       const response = await axios.get(
         `https://nga-states-lga.onrender.com/?state=${encodeURIComponent(
           state
-        )}`
+        )}`,
+        { withCredentials: false }
       );
       setCities(response.data || []);
     } catch (error) {

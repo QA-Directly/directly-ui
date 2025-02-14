@@ -82,7 +82,7 @@ function NavBar() {
         </div>
 
         <div className="mt-auto border-t-2 border-lightText">
-          <button className="flex items-center gap-2 p-4 px-6 text-red-500 font-bold text-lg md:text-xl">
+          <button  className="flex items-center gap-2 p-4 px-6 text-red-500 font-bold text-lg md:text-xl">
             <LogOut />
             <span>Log Out</span>
           </button>

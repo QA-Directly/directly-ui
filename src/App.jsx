@@ -25,12 +25,18 @@ import Booking from "./pages/Booking";
 import Admin from "./pages/Admin";
 import FileUpload from "./components/Dashoard/FileUpload";
 import ResetPassword from "./components/Dashoard/ResetPassword";
+import ManageProviders from "./components/Admin/ManageProviders";
+import ManageUsers from "./components/Admin/ManageUsers";
+import Analysis from "./components/Admin/Analysis";
+import AdminNotification from "./components/Admin/AdminNotification";
 
 // New AdminRoute component for protected admin routes
 const AdminRoute = ({ children }) => {
-  const { user, authenticated } = useAuth();
+  const { user, isAdmin, authenticated } = useAuth();
 
-  if (!authenticated || user?.email !== "admin@directly.com") {
+  console.log("is user admin ", isAdmin);
+
+  if (!authenticated || !isAdmin) {
     return <Navigate to="/signin" />;
   }
 
@@ -38,18 +44,17 @@ const AdminRoute = ({ children }) => {
 };
 
 const RootRoute = () => {
-  const { authenticated, user } = useAuth();
+  const { authenticated, isAdmin } = useAuth();
 
   if (!authenticated) {
-    return <Home />;
+    return <Navigate to="/home" />;
   }
 
-  // Redirect admin to admin dashboard
-  if (user?.email === "admin@directly.com") {
-    return <Navigate to="/admin/dashboard" />;
+  if (isAdmin) {
+    return <Navigate to="/admin" />;
   }
 
-  return <Products />;
+  return <Navigate to="/products" />;
 };
 
 function App() {
@@ -61,16 +66,19 @@ function App() {
 
           {/* Admin Routes */}
           <Route
-            path="/admin/*"
+            path="/admin"
             element={
               <AdminRoute>
-                <Routes>
-                  <Route path="dashboard" element={<Admin />} />
-                  {/* Add more admin routes here as needed */}
-                </Routes>
+                <Admin />
               </AdminRoute>
             }
-          />
+          >
+            <Route path="dashboard" element={<ManageProviders />} />
+            <Route path="manage-provider" element={<ManageProviders />} />
+            <Route path="manage-users" element={<ManageUsers />} />
+            <Route path="analysis" element={<Analysis />} />
+            <Route path="notifications" element={<AdminNotification />} />
+          </Route>
 
           {/* Protected User Routes */}
           <Route element={<ProtectedRoute />}>
@@ -96,6 +104,7 @@ function App() {
 
           {/* Public Routes */}
           <Route path="/signin" element={<SignIn />} />
+          <Route path="/home" element={<Home />} />
           <Route path="/signup" element={<SignUp />} />
           <Route path="/verify-email" element={<VerifyEmail />} />
           <Route

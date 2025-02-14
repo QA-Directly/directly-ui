@@ -1,4 +1,4 @@
-import NavBar from "../components/Dashoard/NavBar";
+import NavBar from "../components/Admin/NavBar";
 import Header from "../components/Dashoard/Header";
 
 import { Outlet } from "react-router-dom";

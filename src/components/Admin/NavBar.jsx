@@ -1,42 +1,54 @@
 import { useState } from "react";
 import {
-  Banknote,
-  Bell,
-  LaptopMinimalCheck,
-  LockKeyholeOpen,
-  LogOut,
-  MessagesSquare,
   NotebookPen,
-  SquarePen,
   Menu,
   X,
+  BriefcaseBusiness,
+  Users2,
+  ChartBar,
+  LogOut,
 } from "lucide-react";
 import { NavLink } from "react-router-dom";
+import { useAuth } from "../../Contexts/AuthContext";
 
 import name from "../../assets/directlyname.png";
 import icon from "../../assets/directlyicon.png";
 
 function NavBar() {
+  const { logout } = useAuth();
   const [isOpen, setIsOpen] = useState(false);
 
   const links = [
-    { name: "Profile", icon: <SquarePen />, link: "/profile" },
-    { name: "Messages", icon: <MessagesSquare />, link: "/messages" },
-    { name: "Transations", icon: <Banknote />, link: "/transactions" },
-    { name: "Notifications", icon: <Bell />, link: "/notifications" },
-    { name: "Bookings", icon: <NotebookPen />, link: "/bookings" },
     {
-      name: "Saved Provider",
-      icon: <LaptopMinimalCheck />,
-      link: "/savedProviders",
+      name: "Provider Management",
+      icon: <BriefcaseBusiness />,
+      link: "/admin/manage-provider",
     },
     {
-      name: "Change Password",
-      icon: <LockKeyholeOpen />,
-      link: "/resetPassword",
+      name: "Users Management",
+      icon: <Users2 />,
+      link: "/admin/manage-users",
+    },
+    {
+      name: "Analysis",
+      icon: <ChartBar />,
+      link: "/admin/analysis",
+    },
+    {
+      name: "Notifications",
+      icon: <NotebookPen />,
+      link: "/admin/notifications",
     },
   ];
-
+  const handleLogout = async () => {
+    try {
+      await logout();
+      // The logout function from AuthContext will handle the state clearing
+      // and redirect will be handled by  protected route setup
+    } catch (error) {
+      console.error("Logout failed:", error);
+    }
+  };
   return (
     <>
       {/* Mobile Menu Button */}
@@ -54,7 +66,7 @@ function NavBar() {
         }`}
       >
         <NavLink
-          to="/"
+          to="/admin/dashboard" // Changed from "/" to "/admin/dashboard"
           className="w-full py-4 flex justify-center items-center gap-2"
         >
           <img src={icon} alt="Icon" className="h-6 md:h-8" />
@@ -66,7 +78,7 @@ function NavBar() {
           <h2 className="font-bold text-xl md:text-2xl p-2">Dashboard</h2>
           {links.map((link, index) => (
             <NavLink
-              to={`/dashboard${link.link}`}
+              to={link.link} // Remove "/dashboard" prefix, use link.link directly
               key={index}
               onClick={() => setIsOpen(false)}
               className={({ isActive }) =>
@@ -80,9 +92,11 @@ function NavBar() {
             </NavLink>
           ))}
         </div>
-
         <div className="mt-auto border-t-2 border-lightText">
-          <button className="flex items-center gap-2 p-4 px-6 text-red-500 font-bold text-lg md:text-xl">
+          <button
+            onClick={handleLogout}
+            className="flex items-center gap-2 p-4 px-6 text-red-500 font-bold text-lg md:text-xl"
+          >
             <LogOut />
             <span>Log Out</span>
           </button>
@@ -91,5 +105,4 @@ function NavBar() {
     </>
   );
 }
-
 export default NavBar;
