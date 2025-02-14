@@ -21,8 +21,8 @@ function SearchResult() {
     // Filter providers based on search query and location
     const filtered = providers.filter((provider) => {
       const matchesQuery =
-        provider.name.toLowerCase().includes(query) ||
-        provider.service.toLowerCase().includes(query) ||
+        provider.businessName.toLowerCase().includes(query) ||
+        provider.category.toLowerCase().includes(query) ||
         provider.description.toLowerCase().includes(query);
 
       const matchesLocation =
@@ -56,25 +56,28 @@ function SearchResult() {
             <div className="flex flex-col">
               {filteredProviders.map((provider) => (
                 <Link
-                  to={`/provider/${provider.id}`}
+                  to={`/provider/${provider._id}`}
                   key={provider.id}
                   className="p-6 border-b flex flex-row gap-6 hover:bg-ash/50"
                 >
+                  {console.log(provider)}
                   <div className="flex">
                     <img
-                      src={provider.image}
-                      alt={provider.name}
+                      src={provider.idImage}
+                      alt={provider.businessName}
                       className="w-24 h-24 rounded-full object-cover border-4 border-orange-500"
                     />
                   </div>
 
                   <div className="w-full flex flex-row justify-between items-center">
                     <div>
-                      <h3 className="text-xl font-semibold">{provider.name}</h3>
-                      <p className="text-gray-600">{provider.service}</p>
-                      <div className="flex items-center gap-1 text-gray-600 mt-1">
+                      <h3 className="text-xl font-semibold">
+                        {provider.businessName}
+                      </h3>
+                      <p className="text-gray-600">{provider.category}</p>
+                      <div className="flex flex-row  items-center gap-1 text-gray-600 mt-1">
                         <MapPin size={16} />
-                        <span>{provider.location}</span>
+                        <span>{provider.address}</span>
                       </div>
                     </div>
                     <p className="text-gray-600 mt-3 max-w-2xl">
