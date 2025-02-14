@@ -15,8 +15,10 @@ import { NavLink } from "react-router-dom";
 
 import name from "../../assets/directlyname.png";
 import icon from "../../assets/directlyicon.png";
+import { useAuth } from "../../Contexts/AuthContext";
 
 function NavBar() {
+  const { logout } = useAuth();
   const [isOpen, setIsOpen] = useState(false);
 
   const links = [
@@ -36,7 +38,15 @@ function NavBar() {
       link: "/resetPassword",
     },
   ];
-
+  const handleLogout = async () => {
+    try {
+      await logout();
+      // The logout function from AuthContext will handle the state clearing
+      // and redirect will be handled by  protected route setup
+    } catch (error) {
+      console.error("Logout failed:", error);
+    }
+  };
   return (
     <>
       {/* Mobile Menu Button */}
@@ -82,7 +92,10 @@ function NavBar() {
         </div>
 
         <div className="mt-auto border-t-2 border-lightText">
-          <button  className="flex items-center gap-2 p-4 px-6 text-red-500 font-bold text-lg md:text-xl">
+          <button
+            onClick={handleLogout}
+            className="flex items-center gap-2 p-4 px-6 text-red-500 font-bold text-lg md:text-xl"
+          >
             <LogOut />
             <span>Log Out</span>
           </button>

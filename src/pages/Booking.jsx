@@ -18,9 +18,9 @@ const Booking = () => {
     firstName: "",
     lastName: "",
     date: "",
-    time: "1pm",
-    address: "20, Adams street, magodo phase 2, Lagos",
-    phone: "+234 902 5432 789",
+    time: "",
+    address: "",
+    phone: "",
     note: "",
   });
 

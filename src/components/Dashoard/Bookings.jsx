@@ -10,6 +10,12 @@ const Bookings = () => {
   const [isActionLoading, setIsActionLoading] = useState(false);
   const [openDropdown, setOpenDropdown] = useState(null);
   const { axiosInstance, userProfile } = useAuth();
+  const [serviceId, setServiceId] = useState(userProfile.serviceId);
+
+  // get userId
+  useEffect(() => {
+    setServiceId(userProfile.serviceId);
+  }, [userProfile]);
 
   // New state for review modal
   const [showReviewModal, setShowReviewModal] = useState(false);
@@ -144,10 +150,11 @@ const Bookings = () => {
 
   // Modify the fetchBookings code to add a hasReviewed property
   useEffect(() => {
+    console.log("userProfile: ", serviceId);
     const fetchBookings = async () => {
       try {
         const response = await axiosInstance.get(
-          "/booking/service/67ae1d2184a6c00b24ed0219"
+          `/booking/service/${serviceId}`
         );
         const bookings = response.data;
 

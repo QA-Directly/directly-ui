@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Search } from "lucide-react";
 import { useProvider } from "../../Contexts/ProviderContext";
 import user from "../../assets/occupations/plumber.png";
+import axios from "axios";
 
 function ManageProviders() {
   const { providers, loading, error } = useProvider();
@@ -12,69 +13,96 @@ function ManageProviders() {
   const filteredProviders = providers.filter((provider) =>
     provider.businessName.toLowerCase().includes(searchTerm.toLowerCase())
   );
+  // Utility function to handle API errors consistently
+  const handleApiError = (error) => {
+    if (axios.isAxiosError(error)) {
+      if (error.response) {
+        const serverMessage =
+          error.response?.data?.message ||
+          error.response?.data?.error ||
+          error.response.statusText;
+        return `HTTP ${error.response.status} ${serverMessage}`;
+      }
+      if (error.request) {
+        return "Request made but no response received";
+      }
+      return error.message;
+    }
+    return error.message;
+  };
 
+  // Utility function to make vendor status API calls
+  const updateVendorStatus = async (endpoint, providerId) => {
+    return axios.post(
+      `https://directly-core.onrender.com/users/${endpoint}`,
+      { _id: providerId },
+      {
+        headers: { "Content-Type": "application/json" },
+      }
+    );
+  };
+
+  // Function to update local vendor state
+  const updateLocalVendorStatus = (
+    selectedProvider,
+    providerId,
+    newStatus,
+    setSelectedProvider
+  ) => {
+    if (selectedProvider?._id === providerId) {
+      setSelectedProvider({ ...selectedProvider, status: newStatus });
+    }
+  };
+
+  // Main function to handle vendor approval
   const handleApproveVendor = async (providerId) => {
     try {
-      const response = await fetch("/users/approve-vendor", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ _id: providerId }),
-      });
-
-      if (!response.ok) {
-        throw new Error("Failed to approve vendor");
-      }
+      const response = await updateVendorStatus("approve-vendor", providerId);
 
       setActionStatus({
         type: "success",
-        message: "Vendor approved successfully",
+        message: `Vendor approved successfully (HTTP ${response.status} ${response.statusText})`,
       });
 
-      // Update the selected provider's status locally
-      if (selectedProvider && selectedProvider._id === providerId) {
-        setSelectedProvider({ ...selectedProvider, status: "approved" });
-      }
+      updateLocalVendorStatus(
+        selectedProvider,
+        providerId,
+        "approved",
+        setSelectedProvider
+      );
     } catch (error) {
+      const errorMessage = handleApiError(error);
       setActionStatus({
         type: "error",
-        message: "Failed to approve vendor: " + error.message,
+        message: `Failed to approve vendor: ${errorMessage}`,
       });
     }
   };
 
+  // Main function to handle vendor rejection
   const handleRejectVendor = async (providerId) => {
     try {
-      const response = await fetch("/users/reject-vendor", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ _id: providerId }),
-      });
-
-      if (!response.ok) {
-        throw new Error("Failed to reject vendor");
-      }
+      const response = await updateVendorStatus("reject-vendor", providerId);
 
       setActionStatus({
         type: "success",
-        message: "Vendor rejected successfully",
+        message: `Vendor rejected successfully (HTTP ${response.status} ${response.statusText})`,
       });
 
-      // Update the selected provider's status locally
-      if (selectedProvider && selectedProvider._id === providerId) {
-        setSelectedProvider({ ...selectedProvider, status: "rejected" });
-      }
+      updateLocalVendorStatus(
+        selectedProvider,
+        providerId,
+        "rejected",
+        setSelectedProvider
+      );
     } catch (error) {
+      const errorMessage = handleApiError(error);
       setActionStatus({
         type: "error",
-        message: "Failed to reject vendor: " + error.message,
+        message: `Failed to reject vendor: ${errorMessage}`,
       });
     }
   };
-
   return (
     <div className="flex flex-row w-full h-screen">
       {/* Sidebar with providers list */}
@@ -159,23 +187,6 @@ function ManageProviders() {
                   </p>
                 </div>
               </div>
-
-              {selectedProvider.status === "pending" && (
-                <div className="flex gap-4">
-                  <button
-                    onClick={() => handleApproveVendor(selectedProvider._id)}
-                    className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700"
-                  >
-                    Approve Vendor
-                  </button>
-                  <button
-                    onClick={() => handleRejectVendor(selectedProvider._id)}
-                    className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700"
-                  >
-                    Reject Vendor
-                  </button>
-                </div>
-              )}
             </section>
 
             {/* Provider Details */}
@@ -251,6 +262,28 @@ function ManageProviders() {
                     <p className="text-gray-500">No reviews yet</p>
                   )}
                 </div>
+                {/* New Action Buttons Section */}
+                {selectedProvider.status === "pending" && (
+                  <div className="mt-6 border-t pt-6">
+                    <h4 className="font-semibold mb-4">Provider Actions</h4>
+                    <div className="flex gap-4 justify-end">
+                      <button
+                        onClick={() =>
+                          handleApproveVendor(selectedProvider._id)
+                        }
+                        className="px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors duration-200"
+                      >
+                        Approve Provider
+                      </button>
+                      <button
+                        onClick={() => handleRejectVendor(selectedProvider._id)}
+                        className="px-6 py-3 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors duration-200"
+                      >
+                        Reject Provider
+                      </button>
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
           </>
