@@ -15,6 +15,7 @@ function Profile() {
 
   useEffect(() => {
     setDp(userProfile.profilePicture);
+    console.log(userProfile);
   }, [userProfile]);
 
   const handleImageClick = () => {
@@ -94,7 +95,7 @@ function Profile() {
         </div>
 
         <div className="w-1/3 flex flex-row items-center justify-between gap-8 h-12 ">
-          {userProfile.role === "provider" && (
+          {userProfile.role === "service-provider" && (
             <Link
               to="/dashboard/upload"
               className="w-1/2 border-2 border-primary bg-primary p-2 rounded-lg text-lightText"
@@ -154,7 +155,7 @@ function Profile() {
           readOnly
         />
       </div>
-      {userProfile.role === "provider" && (
+      {userProfile.role === "service-provider" && (
         <div className="mb-4">
           <label
             htmlFor="businessAddress"
@@ -172,7 +173,7 @@ function Profile() {
         </div>
       )}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-        {userProfile.role === "provider" && (
+        {userProfile.role === "service-provider" && (
           <div>
             <label
               htmlFor="phoneNumber"

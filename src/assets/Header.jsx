@@ -141,7 +141,7 @@ function Header() {
       >
         <nav className="flex justify-center gap-8">
           <Link
-            to="/dashboard/profile/1"
+            to="/dashboard/profile"
             className="text-[#CBE9F4] hover:text-[#FF851B] transition-colors"
           >
             <User className="w-6 h-6" />

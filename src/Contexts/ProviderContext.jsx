@@ -24,34 +24,12 @@ export function ProviderContextProvider({ children }) {
         const response = await axios.get(
           "https://directly-core.onrender.com/services"
         );
-        console.log("API Status:", response.status, "Data:", response.data);
 
         // Check if response.data exists and is an array
         if (!response.data || !Array.isArray(response.data)) {
           throw new Error("Invalid data format received from API");
         }
-
-        // Transform the API data to match the expected format
-        const transformedData = response.data.map((provider) => ({
-          id: provider._id,
-          name: provider.businessName,
-          service: provider.category,
-          starRating: provider.averageRating || 0,
-          image: provider.idImage || "",
-          description: provider.description || "",
-          phone: provider.phoneNumber || "",
-          email: provider.email || "",
-          location:
-            provider.city && provider.state && provider.country
-              ? `${provider.city}, ${provider.state}, ${provider.country}`
-              : "Location not specified",
-          verifiedId: provider.status === "approved",
-          reviews: [], // Default empty array for reviews
-          gallery: [], // Default empty array for gallery
-        }));
-
-        console.log("Transformed Data:", transformedData); // Debug log
-        setProviders(transformedData);
+        setProviders(response.data);
       } catch (err) {
         console.error("Fetch Error:", err); // Debug log
         setError(err.message || "Failed to fetch providers");
@@ -65,9 +43,7 @@ export function ProviderContextProvider({ children }) {
 
   // Helper functions
   const getProviderById = (id) => {
-    console.log("Finding provider with ID:", id); // Debug log
-    console.log("Available providers:", providers); // Debug log
-    return providers.find((provider) => provider.id === id);
+    return providers.find((provider) => provider._id === id);
   };
 
   const getProviderByName = (name) => {

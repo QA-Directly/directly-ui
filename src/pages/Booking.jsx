@@ -2,13 +2,16 @@ import React, { useEffect, useState } from "react";
 import Header from "../assets/Header";
 import Footer from "../components/Footer";
 import axios from "axios";
-import { providersData } from "../utils/ProvidersData";
-import { Link, useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, Link } from "react-router-dom";
+import { useProvider } from "../Contexts/ProviderContext";
 
 const Booking = () => {
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
+  const { getProviderById, loading: providerLoading } = useProvider();
+  const { id } = useParams();
+
   const [formData, setFormData] = useState({
     userId: "",
     serviceId: "",
@@ -22,8 +25,6 @@ const Booking = () => {
   });
 
   const [user, setUser] = useState({});
-  const [provider, setProvider] = useState(null);
-  const { id } = useParams();
   const [selectedDate, setSelectedDate] = useState(null);
   const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth());
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
@@ -84,19 +85,10 @@ const Booking = () => {
         const userData = await fetchUserProfile();
         setUser(userData);
 
-        const parsedId = Number(id);
-        const foundProvider = providersData.find((p) => p.id === parsedId);
-
-        if (!foundProvider) {
-          throw new Error("Provider not found");
-        }
-
-        setProvider(foundProvider);
-
         setFormData((prev) => ({
           ...prev,
           userId: userData._id || "",
-          serviceId: id, // Keep as string from URL
+          serviceId: id,
           firstName: userData.firstName || "",
           lastName: userData.lastName || "",
           address: prev.address || "",
@@ -187,7 +179,9 @@ const Booking = () => {
     }
   };
 
-  if (isLoading) {
+  const provider = getProviderById(id);
+
+  if (isLoading || providerLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-blue-500"></div>
@@ -195,6 +189,13 @@ const Booking = () => {
     );
   }
 
+  if (!provider) {
+    return (
+      <div className="flex justify-center items-center min-h-screen">
+        Provider not found
+      </div>
+    );
+  }
   return (
     <div className="flex flex-col gap-4 bg-ash">
       <Header />

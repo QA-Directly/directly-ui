@@ -26,7 +26,7 @@ import {
 import { Link, NavLink, useNavigate } from "react-router-dom";
 import Footer from "../components/Footer";
 import { useAuth } from "../Contexts/AuthContext";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Carousel from "../components/Carousel";
 import Header from "../assets/Header";
 import { useProvider } from "../Contexts/ProviderContext";
@@ -34,21 +34,6 @@ import { useProvider } from "../Contexts/ProviderContext";
 // import images
 
 const Products = () => {
-  const { logout } = useAuth();
-  const navigate = useNavigate();
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
-
-  // Handle menu toggle (mobile)
-  const toggleMenu = () => {
-    setIsMenuOpen(!isMenuOpen);
-  };
-
-  // Handle logout
-  const handleLogOut = () => {
-    logout();
-    navigate("/");
-  };
-
   const categories = [
     { name: "Health & Beauty Services", icon: Heart },
     { name: "Building & Trade Services", icon: Scissors },
@@ -64,7 +49,10 @@ const Products = () => {
 
   // get data from context
   const { providers, loading, error } = useProvider();
-// render stars
+  useEffect(() => {
+    console.log("Retrieved Providers: ", providers);
+  }, [providers]);
+  // render stars
   const renderStars = (rating) => {
     const fullStar = Math.floor(rating);
     const halfStar = rating % 1 !== 0;
@@ -81,21 +69,21 @@ const Products = () => {
   };
   // loading
 
-   if (loading) {
-     return (
-       <div className="flex justify-center items-center min-h-screen">
-         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#FF851B]"></div>
-       </div>
-     );
-   }
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center min-h-screen">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#FF851B]"></div>
+      </div>
+    );
+  }
 
-   if (error) {
-     return (
-       <div className="flex justify-center items-center min-h-screen text-red-500">
-         Error loading providers: {error}
-       </div>
-     );
-   }
+  if (error) {
+    return (
+      <div className="flex justify-center items-center min-h-screen text-red-500">
+        Error loading providers: {error}
+      </div>
+    );
+  }
 
   return (
     <div className="bg-[#EDEBEB] flex flex-col justify-between">
@@ -201,12 +189,17 @@ const Products = () => {
         <div className="bg-white grid grid-cols-1 md:grid-cols-4 justify-between items-center m-auto gap-10 md:gap-20 px-2 md:px-8 rounded-b-lg shadow-md py-8 md:py-12">
           {providers.map((serviceProvider) => (
             <Link
-              to={`/provider/${serviceProvider.id}`}
-              key={serviceProvider.id}
+              to={`/provider/${serviceProvider._id}`}
+              key={serviceProvider._id}
               className="w-full border flex flex-col gap-2 shadow-sm hover:shadow-md p-2 pb-4 md:p-4 rounded-lg"
             >
-              <img src={serviceProvider.image} className="w-full rounded-lg" />
-              <p className="font-bold text-xl">{serviceProvider.name}</p>
+              <img
+                src={serviceProvider.idImage}
+                className="w-full rounded-lg"
+              />
+              <p className="font-bold text-xl">
+                {serviceProvider.businessName}
+              </p>
               <p>{serviceProvider.service}</p>
               <div className="flex flex-col items-start gap-4">
                 <div className="w-full flex flex-row justify-between gap-1">

@@ -33,7 +33,7 @@ function FileUpload() {
             withCredentials: true,
           }
         );
-        setId(response.data._id);
+        setId(response.data.serviceId);
       } catch (error) {
         console.error("Get User Error: ", error);
       }
@@ -48,35 +48,31 @@ function FileUpload() {
     setIsUploading(true);
     const formData = new FormData();
 
-    selectedFiles.forEach((file, index) => {
-      formData.append(`file${index}`, file);
-    });
+    // Use 'files' as the form field name to match Postman
+    formData.append("files", selectedFiles[0]);
 
     try {
+      // Make sure to use the correct ID format
       const response = await axios.post(
         `https://directly-core.onrender.com/services/${id}/upload-media`,
         formData,
         {
           withCredentials: true,
+          // Let browser set the Content-Type header automatically
           headers: {
-            "Content-Type": "multipart/form-data",
+            Accept: "application/json",
           },
         }
       );
 
-      console.log("Upload successful:", response.data);
-
-      // Clear the selected files after successful upload
       setSelectedFiles([]);
-
-      // Show success message to the user
-      alert("Files uploaded successfully!");
     } catch (error) {
-      console.error("Upload error:", error);
-      alert(
-        error.response?.data?.message ||
-          "Failed to upload files. Please try again."
-      );
+      console.error("Upload error:", {
+        message: error.message,
+        status: error.response?.status,
+        data: error.response?.data,
+      });
+      alert("Failed to upload file. Please try again.");
     } finally {
       setIsUploading(false);
     }
