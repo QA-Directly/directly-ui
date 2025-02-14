@@ -1,6 +1,7 @@
 import { SendHorizontal } from "lucide-react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { useProvider } from "../Contexts/ProviderContext";
+import placeholder from "../assets/occupations/baber.png";
 
 import Header from "./Header";
 
@@ -56,7 +57,7 @@ function Provider() {
     );
   }
 
-    // Check if mediaFiles exists and has items
+  // Check if mediaFiles exists and has items
   const hasMediaFiles = provider.mediaFiles && provider.mediaFiles.length > 0;
 
   return (
@@ -66,20 +67,37 @@ function Provider() {
       {/*  profile */}
       <div className="w-[90%] md:w-4/5 rounded-2xl border-4 flex flex-row justify-evenly items-center mt-8 p-4 md:p-8 bg-white m-auto">
         <div className="hidden w-1/4 md:flex flex-col justify-center items-center gap-2">
-          <img src={provider.image} className="rounded-full w-4/5" alt="" />
-          <p className="hidden md:flex bg-[#CBE9F4] w-2/3 p-1 rounded-3xl items-start mr-40 justify-center">
-            {provider.verifiedId ? "Verified ID" : "Unverified"}
-          </p>
-          provider
-        </div>
-        <div className="w-full md:w-2/3 flex flex-col gap-4">
-          <div className="flex flex-row justify-between items-center">
+          {hasMediaFiles ? (
             <img
-              src={provider.image}
+              src={provider.mediaFiles[0]}
               className="flex md:hidden rounded-full w-1/3"
               alt=""
             />
-            <h2 className="text-lg md:text-3xl font-bold">{provider.name}</h2>
+          ) : (
+            <img src={placeholder} className="w-full rounded-full" />
+          )}
+          <p className="hidden md:flex bg-[#CBE9F4] w-2/3 p-1 rounded-3xl items-start mr-40 justify-center">
+            {provider.status === "approved" ? "Verified ID" : "Unverified"}
+          </p>
+          {provider.businessName}
+        </div>
+        <div className="w-full md:w-2/3 flex flex-col gap-4">
+          <div className="flex flex-row justify-between items-center">
+            {hasMediaFiles ? (
+              <img
+                src={provider.mediaFiles[0]}
+                className="flex md:hidden rounded-full w-1/3"
+                alt=""
+              />
+            ) : (
+              <img
+                src={placeholder}
+                className="flex md:hidden rounded-full w-1/3"
+              />
+            )}
+            <h2 className="text-lg md:text-3xl font-bold">
+              {provider.businessName}
+            </h2>
             <div className="flex md:hidden bg-[#CBE9F4] h-6 p-2 rounded-xl text-xs justify-center items-center">
               {provider.verifiedId ? "Verified ID" : "Unverified"}
             </div>
@@ -91,15 +109,15 @@ function Provider() {
                   Service Category
                 </h2>
                 <p className="text-xs md:text-lg font-semibold">
-                  {provider.service}
+                  {provider.category}
                 </p>
               </div>
               <div className="flex flex-col gap-1">
                 <h2 className="uppercase text-xs md:text-lg font-medium">
-                  PHONE NUMBERprovider
+                  PHONE NUMBER
                 </h2>
                 <p className="text-xs md:text-lg font-semibold">
-                  {provider.phone}
+                  {provider.phoneNumber}
                 </p>
               </div>
               <div className="flex flex-col gap-1">
@@ -115,7 +133,7 @@ function Provider() {
                   LOCATION
                 </h2>
                 <p className="text-xs md:text-lg font-semibold">
-                  {provider.location}
+                  {provider.city},{provider.country}
                 </p>
               </div>
             </div>
@@ -150,7 +168,6 @@ function Provider() {
       </div>
 
       {/* Review & Gallery */}
-      {/* Review & Gallery */}
       <div className="w-[90%] border-2 md:w-4/5 flex flex-col-reverse md:flex-row bg-[#edebeb] mt-8 rounded-2xl justify-between gap-12 items-start m-auto">
         <div className="w-1/3 bg-white rounded-2xl pb-4 mb-12 ">
           <div className="w-full bg-[#86dfff] rounded-t-2xl p-4 text-[#001f3f] text-center font-bold text-xl">
@@ -168,7 +185,7 @@ function Provider() {
                       <h2 className="font-semibold text-lg">{review.name}</h2>
                       <StarRating rating={review.rating} />
                     </div>
-                    <p className="text-gray-700">{review.text}</p>
+                    <p className="text-gray-700">{review.comment}</p>
                   </div>
                 ))
               ) : (
@@ -182,16 +199,6 @@ function Provider() {
                 View more reviews
               </button>
             )}
-            <div className="w-full flex items-center relative mt-8">
-              <input
-                type="text"
-                placeholder="Leave a review"
-                className="w-full outline-none rounded-lg p-2 bg-[#edebeb] pr-12"
-              />
-              <button className="absolute right-3 text-gold">
-                <SendHorizontal size={20} />
-              </button>
-            </div>
           </div>
         </div>
         <div className="w-full md:w-[60%] bg-white rounded-2xl pb-4 mb-12">

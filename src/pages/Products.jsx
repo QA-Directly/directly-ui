@@ -30,6 +30,7 @@ import { useEffect, useState } from "react";
 import Carousel from "../components/Carousel";
 import Header from "../assets/Header";
 import { useProvider } from "../Contexts/ProviderContext";
+import placeholder from "../assets/occupations/baber.png";
 
 // import images
 
@@ -191,26 +192,33 @@ const Products = () => {
             <Link
               to={`/provider/${serviceProvider._id}`}
               key={serviceProvider._id}
-              className="w-full border flex flex-col gap-2 shadow-sm hover:shadow-md p-2 pb-4 md:p-4 rounded-lg"
+              className="w-full h-full border flex flex-col justify-between gap-2 shadow-sm hover:shadow-md p-2 pb-4 md:p-4 rounded-lg"
             >
-              <img
-                src={serviceProvider.idImage}
-                className="w-full rounded-lg"
-              />
+              {serviceProvider.mediaFiles ? (
+                <img
+                  src={serviceProvider.mediaFiles[0]}
+                  className="w-full h-56 rounded-lg"
+                />
+              ) : (
+                <img src={placeholder} className="w-full h-56 rounded-lg" />
+              )}
               <p className="font-bold text-xl">
                 {serviceProvider.businessName}
               </p>
               <p>{serviceProvider.service}</p>
               <div className="flex flex-col items-start gap-4">
-                <div className="w-full flex flex-row justify-between gap-1">
-                  <div className="flex flex-row gap-1">
-                    {renderStars(serviceProvider.starRating)}
+                {serviceProvider.reviews.map((review, index) => (
+                  <div key={index} className="flex flex-row gap-1">
+                    {renderStars(review.rating)}
+                    <p className="text-sm">{review.rating} rating</p>
                   </div>
-                  <p className="text-sm">{serviceProvider.starRating} rating</p>
-                </div>
-                <button className="bg-[#001F3F] text-white py-1 px-4 rounded-lg">
+                ))}
+                <Link
+                  to={`/book/${serviceProvider._id}`}
+                  className="bg-[#001F3F] text-white py-2 px-4 rounded-lg"
+                >
                   Book Now
-                </button>
+                </Link>
               </div>
             </Link>
           ))}
