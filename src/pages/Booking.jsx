@@ -195,6 +195,32 @@ const Booking = () => {
       </div>
     );
   }
+  const getInitials = (businessName) => {
+    if (!businessName) return "?";
+    return businessName
+      .split(" ")
+      .map((word) => word[0])
+      .join("")
+      .toUpperCase()
+      .slice(0, 2);
+  };
+  const ProfileImage = ({ provider }) => {
+    if (provider.profilePicture) {
+      return (
+        <img
+          src={provider.profilePicture}
+          className="w-full rounded-full"
+          alt={provider.businessName}
+        />
+      );
+    }
+
+    return (
+      <div className="w-full aspect-square rounded-full bg-[#CBE9F4] flex items-center justify-center text-2xl font-bold text-[#001f3f]">
+        {getInitials(provider.businessName)}
+      </div>
+    );
+  };
   return (
     <div className="flex flex-col gap-4 bg-ash">
       <Header />
@@ -352,11 +378,11 @@ const Booking = () => {
                 rows="4"
               />
             </div>
-            <div className="mt-6 flex justify-end">
+            <div className="mt-6 flex justify-center">
               <button
                 type="submit"
                 disabled={isLoading}
-                className={`bg-gold p-2 w-full sm:w-4/5 rounded-lg text-primary font-bold
+                className={`bg-gold p-2  sm:w-4/5 rounded-lg text-primary font-bold
                   ${
                     isLoading
                       ? "opacity-50 cursor-not-allowed"
@@ -375,15 +401,11 @@ const Booking = () => {
             {provider ? (
               <div className="flex flex-col items-center">
                 <div className="w-24 h-24 sm:w-32 sm:h-32 rounded-full overflow-hidden mb-4">
-                  {provider.image && (
-                    <img
-                      src={provider.image}
-                      alt={provider.name}
-                      className="w-full h-full object-cover"
-                    />
-                  )}
+                  <ProfileImage provider={provider} />
                 </div>
-                <h2 className="text-xl font-semibold mb-2">{provider.name}</h2>
+                <h2 className="text-xl font-semibold mb-2">
+                  {provider.businessName}
+                </h2>
 
                 <div className="w-full">
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-8">
@@ -395,18 +417,20 @@ const Booking = () => {
                     </div>
                     <div>
                       <h3 className="font-medium mb-2">Phone</h3>
-                      <p className="text-gray-600 text-sm">{provider.phone}</p>
+                      <p className="text-gray-600 text-sm">
+                        {provider.phoneNumber}
+                      </p>
                     </div>
                     <div className="border-t pt-2">
                       <h3 className="font-medium">Location</h3>
                       <p className="text-gray-600 text-sm">
-                        {provider.location}
+                        {provider.city} {provider.country}
                       </p>
                     </div>
                     <div className="border-t pt-2 mb-10">
                       <h3 className="font-medium">Service Category</h3>
                       <p className="text-gray-600 text-sm">
-                        {provider.service}
+                        {provider.category}
                       </p>
                     </div>
                   </div>

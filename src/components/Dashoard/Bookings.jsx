@@ -85,9 +85,7 @@ const Bookings = () => {
   const handleConfirm = async (bookingId) => {
     setIsActionLoading(true);
     try {
-      await axiosInstance.patch(
-        `/booking/${bookingId}/confirm`,
-      );
+      await axiosInstance.patch(`/booking/${bookingId}/confirm`);
 
       // Update the receivedBookings state
       const updatedBookings = receivedBookings.map((booking) =>

@@ -47,7 +47,7 @@ const Products = () => {
     { name: "DJ & Entertainment Services", icon: Music },
     { name: "Fitness & Personal Training Services", icon: Dumbbell },
   ];
-
+  let averageRating;
   // get data from context
   const { providers, loading, error } = useProvider();
 
@@ -65,6 +65,14 @@ const Products = () => {
       stars.push(<StarHalf key="half" stroke="none" size={20} fill="orange" />);
     }
     return stars;
+  };
+
+  // helper function to calculate average rating
+  const calculateAverageRating = (reviews) => {
+    if (!reviews || reviews.length === 0) return 0;
+    return (
+      reviews.reduce((acc, review) => acc + review.rating, 0) / reviews.length
+    );
   };
   // loading
 
@@ -186,63 +194,65 @@ const Products = () => {
         </div>
         {/* Providers Grid */}
         <div className="bg-white grid grid-cols-1 md:grid-cols-4 justify-between items-center m-auto gap-10 md:gap-20 px-2 md:px-8 rounded-b-lg shadow-md py-8 md:py-12">
-          {providers.map((serviceProvider, index) => (
-            <div
-              key={index}
-              className="w-full  border flex flex-col justify-between gap-8 shadow-sm hover:shadow-md p-2 pb-4 md:p-4 rounded-lg"
-            >
-              <Link
-                to={`/provider/${serviceProvider._id}`}
-                key={serviceProvider._id}
-                className=""
+          {providers.map((serviceProvider, index) => {
+            const averageRating = calculateAverageRating(
+              serviceProvider.reviews
+            );
+
+            return (
+              <div
+                key={index}
+                className="w-full  border flex flex-col justify-between gap-8 shadow-sm hover:shadow-md p-2 pb-4 md:p-4 rounded-lg"
               >
-                {serviceProvider.mediaFiles ? (
-                  <img
-                    src={serviceProvider.mediaFiles[0]}
-                    className="w-full h-56 rounded-lg"
-                  />
-                ) : (
-                  <img src={placeholder} className="w-full h-56 rounded-lg" />
-                )}
-                <p className="font-bold text-xl pt-4">
-                  {serviceProvider.businessName}
-                </p>
-                <p>{serviceProvider.service}</p>
-                <div className="flex flex-col items-start gap-4">
-                  {serviceProvider.reviews &&
-                  serviceProvider.reviews.length > 0 ? (
-                    serviceProvider.reviews.map((review, index) => (
-                      <div
-                        key={index}
-                        className="w-full flex flex-row justify-between pt-2"
-                      >
-                        {review?.rating ? (
-                          <div className="w-full flex flex-row justify-between">
-                            <div className="flex flex-row">
-                              {renderStars(review.rating)}
-                            </div>
-                            <p className="text-sm">
-                              {review.rating} rating
-                            </p>
-                          </div>
-                        ) : (
-                          <p>No review yet</p>
-                        )}
-                      </div>
-                    ))
+                <Link
+                  to={`/provider/${serviceProvider._id}`}
+                  key={serviceProvider._id}
+                  className=""
+                >
+                  {serviceProvider.mediaFiles ? (
+                    <img
+                      src={serviceProvider.mediaFiles[0]}
+                      className="w-full h-56 rounded-lg"
+                      alt={serviceProvider.businessName}
+                    />
                   ) : (
-                    <p>No reviews yet</p>
+                    <img
+                      src={placeholder}
+                      className="w-full h-56 rounded-lg"
+                      alt={serviceProvider.businessName}
+                    />
                   )}
-                </div>
-              </Link>
-              <Link
-                to={`/book/${serviceProvider._id}`}
-                className="bg-primary text-center text-white py-2 px-4 rounded-lg"
-              >
-                Book Now
-              </Link>
-            </div>
-          ))}
+                  <p className="font-bold text-xl pt-4">
+                    {serviceProvider.businessName}
+                  </p>
+                  <p>{serviceProvider.service}</p>
+                  <div className="flex flex-col items-start gap-4">
+                    {serviceProvider.reviews &&
+                    serviceProvider.reviews.length > 0 ? (
+                      <div className="w-full flex flex-row justify-between pt-2">
+                        <div className="w-full flex flex-row justify-between">
+                          <div className="flex flex-row">
+                            {renderStars(averageRating)}
+                          </div>
+                          <p className="text-sm">
+                            {averageRating.toFixed(1)} rating
+                          </p>
+                        </div>
+                      </div>
+                    ) : (
+                      <p>No reviews yet</p>
+                    )}
+                  </div>
+                </Link>
+                <Link
+                  to={`/book/${serviceProvider._id}`}
+                  className="bg-primary text-center text-white py-2 px-4 rounded-lg"
+                >
+                  Book Now
+                </Link>
+              </div>
+            );
+          })}
         </div>
       </div>
       {/* Footer */}

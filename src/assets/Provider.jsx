@@ -39,7 +39,6 @@ function Provider() {
 
   const ProfileImage = ({ provider }) => {
     if (provider.profilePicture) {
-
       return (
         <img
           src={provider.profilePicture}
@@ -99,8 +98,6 @@ function Provider() {
       </div>
     );
   }
-console.log("Providers: ", provider)
-
 
   return (
     <div className="bg-[#EDEBEB] flex flex-col justify-between">
