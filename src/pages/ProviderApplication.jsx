@@ -495,7 +495,7 @@ function ProviderApplication() {
                 >
                   Gender
                 </label>
-                {/* Corrected the name and id for Gender */}
+
                 <select
                   id="gender"
                   name="gender"
@@ -544,11 +544,39 @@ function ProviderApplication() {
                 className="w-full border-gray-300 border rounded py-4 px-3"
               >
                 <option value="">
-                  What category is your business under? e.g. health & beauty
+                  What category is your business under? e.g. Health & Beauty
                 </option>
-                <option value="ICT">ICT</option>
+                <option value="technology">Technology & IT Services</option>
+                <option value="healthcare">Healthcare & Medical</option>
+                <option value="beauty">Beauty & Personal Care</option>
+                <option value="finance">Finance & Insurance</option>
+                <option value="education">Education & Training</option>
+                <option value="real_estate">
+                  Real Estate & Property Management
+                </option>
+                <option value="food_beverage">Food & Beverage</option>
+                <option value="retail">Retail & E-commerce</option>
+                <option value="hospitality">Hospitality & Tourism</option>
+                <option value="transport">Transport & Logistics</option>
+                <option value="construction">Construction & Engineering</option>
+                <option value="entertainment">Entertainment & Media</option>
+                <option value="agriculture">Agriculture & Farming</option>
+                <option value="automotive">Automotive & Mechanics</option>
+                <option value="legal">Legal & Consulting Services</option>
+                <option value="marketing">Marketing & Advertising</option>
+                <option value="manufacturing">
+                  Manufacturing & Production
+                </option>
+                <option value="sports_fitness">Sports & Fitness</option>
+                <option value="home_services">Home Services & Repairs</option>
+                <option value="fashion">Fashion & Apparel</option>
+                <option value="nonprofit">Nonprofit & Social Services</option>
+                <option value="arts_crafts">Arts, Crafts & Design</option>
+                <option value="events">Event Planning & Management</option>
+                <option value="security">Security Services</option>
               </select>
             </div>
+
             <div className="mb-4">
               <label
                 htmlFor="serviceDescription"

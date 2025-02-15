@@ -85,6 +85,8 @@ export function ProviderContextProvider({ children }) {
         );
 
         setProviders(providersWithReviews);
+        console.log(providersWithReviews);
+
       } catch (err) {
         console.error("Fetch Error:", err);
         setError(err.message || "Failed to fetch providers");

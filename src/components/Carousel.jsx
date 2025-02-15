@@ -2,18 +2,19 @@ import { Swiper, SwiperSlide } from "swiper/react";
 import "swiper/css";
 import "swiper/css/navigation";
 import { Navigation, Autoplay } from "swiper/modules";
-import fashion from "../assets/carousel/fashion.png";
-import makeup from "../assets/carousel/makeUp.png";
-import plumber from "../assets/carousel/plumber.png";
-import interior from "../assets/carousel/interior.png";
+import { Link } from "react-router-dom";
+import { useProvider } from "../Contexts/ProviderContext";
+import { useEffect } from "react";
 
 export default function Carousel() {
-  const slides = [
-    { image: fashion, occupation: "Fashion Designer" },
-    { image: makeup, occupation: "Make Up Artist" },
-    { image: plumber, occupation: "Plumber " },
-    { image: interior, occupation: "Interior Designer " },
-  ];
+  const { providers } = useProvider();
+
+  // Filter out providers without mediaFiles
+  const providersWithMedia = providers.filter(
+    (provider) => provider.mediaFiles && provider.mediaFiles.length > 0
+  );
+
+
   return (
     <Swiper
       slidesPerView={1}
@@ -21,18 +22,27 @@ export default function Carousel() {
       autoplay={{ delay: 2500, disableOnInteraction: false }}
       navigation
     >
-      {slides.map((slide, index) => (
-        <SwiperSlide key={index}>
-          <div>
-            <img
-              src={slide.image}
-              alt=""
-              className="h-2/3 w-full rounded-t-lg"
-            />
-            <p className="bg-[#001F3F] p-2 text-center rounded-b-lg text-white">
-              {slide.occupation}
-            </p>
-          </div>
+      {providersWithMedia.map((provider) => (
+        <SwiperSlide key={provider._id}>
+          <Link to={`/provider/${provider._id}`} className="block">
+            <div className="flex flex-col justify-start  rounded-lg">
+              <div className="h-96 w-full">
+                <img
+                  src={provider.mediaFiles[0]}
+                  alt={`${provider.businessName || "Business"} workspace`}
+                  className="w-full h-full object-cover rounded-t-lg"
+                  onError={(e) => {
+                    e.target.src = "/api/placeholder/400/300";
+                  }}
+                />
+              </div>
+              <p className="bg-primary py-3 text-center rounded-b-lg text-white">
+                {
+                  provider.category ||
+                  "Service Provider"}
+              </p>
+            </div>
+          </Link>
         </SwiperSlide>
       ))}
     </Swiper>
