@@ -162,7 +162,6 @@ const Booking = () => {
       });
 
       if (response.status >= 200 && response.status < 300) {
-        alert("Booking successful!");
         navigate("/bookingsuccess");
       }
     } catch (error) {

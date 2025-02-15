@@ -4,8 +4,8 @@ import { ChevronDown, ChevronUp, Star } from "lucide-react";
 import axios from "axios";
 
 const Bookings = () => {
-  const [newBookings, setNewBookings] = useState([]);
-  const [oldBookings, setOldBookings] = useState([]);
+  const [receivedBookings, setReceivedBookings] = useState([]);
+  const [sentBookings, setSentBookings] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isActionLoading, setIsActionLoading] = useState(false);
   const [openDropdown, setOpenDropdown] = useState(null);
@@ -23,59 +23,48 @@ const Bookings = () => {
 
   useEffect(() => {
     setServiceId(userProfile.serviceId);
-    console.log(userProfile);
   }, [userProfile]);
 
-  // Close dropdown when clicking outside
   useEffect(() => {
     const handleClickOutside = () => setOpenDropdown(null);
     document.addEventListener("click", handleClickOutside);
     return () => document.removeEventListener("click", handleClickOutside);
   }, []);
 
-  // Fetch bookings based on user role
   useEffect(() => {
     const fetchBookings = async () => {
       try {
-        let response;
+        // Fetch sent bookings for all users
+        const sentResponse = await axiosInstance.get(
+          `/booking/user/${userProfile._id}`
+        );
+
+        // Fetch received bookings only for service providers
+        let receivedResponse = { data: [] };
         if (isProvider) {
-          // Fetch bookings received by the service provider
-          response = await axiosInstance.get(`/booking/service/${serviceId}`);
-          console.log("Provider bookings :");
-        } else {
-          // Fetch bookings made by the user
-          response = await axiosInstance.get(
-            `/booking/user/${userProfile._id}`
+          receivedResponse = await axiosInstance.get(
+            `/booking/service/${serviceId}`
           );
-          console.log("User bookings: ");
         }
 
-        const bookings = response.data;
-        const transformedBookings = bookings.map((booking) => ({
-          id: booking._id,
-          name: `${booking.firstName} ${booking.lastName}`,
-          contact: booking.phone,
-          dateTime: `${booking.date} ${booking.time}`,
-          status:
-            booking.status.charAt(0).toUpperCase() + booking.status.slice(1),
-          address: booking.address,
-          note: booking.note,
-          hasReviewed: booking.hasReviewed || false,
-          serviceProvider: booking.serviceProvider,
-          serviceId: booking.serviceId,
-        }));
+        const transformBookings = (bookings) =>
+          bookings.map((booking) => ({
+            id: booking._id,
+            name: `${booking.firstName} ${booking.lastName}`,
+            contact: booking.phone,
+            dateTime: `${booking.date} ${booking.time}`,
+            status:
+              booking.status.charAt(0).toUpperCase() + booking.status.slice(1),
+            address: booking.address,
+            note: booking.note,
+            hasReviewed: booking.hasReviewed || false,
+            serviceProvider: booking.serviceProvider,
+            serviceId: booking.serviceId,
+            type: booking.type, // 'sent' or 'received'
+          }));
 
-        // Split bookings based on date
-        const currentDate = new Date();
-        const newBooks = transformedBookings.filter(
-          (booking) => new Date(booking.dateTime.split(" ")[0]) >= currentDate
-        );
-        const oldBooks = transformedBookings.filter(
-          (booking) => new Date(booking.dateTime.split(" ")[0]) < currentDate
-        );
-
-        setNewBookings(newBooks);
-        setOldBookings(oldBooks);
+        setSentBookings(transformBookings(sentResponse.data));
+        setReceivedBookings(transformBookings(receivedResponse.data));
       } catch (error) {
         console.error("Error fetching bookings:", error);
       } finally {
@@ -86,18 +75,25 @@ const Bookings = () => {
     fetchBookings();
   }, [axiosInstance, isProvider, serviceId, userProfile._id]);
 
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = () => setOpenDropdown(null);
+    document.addEventListener("click", handleClickOutside);
+    return () => document.removeEventListener("click", handleClickOutside);
+  }, []);
+
   const handleConfirm = async (bookingId) => {
     setIsActionLoading(true);
     try {
-      await axios.patch(
-        `https://directly-core.onrender.com/booking/${bookingId}/confirm`,
-        {},
-        { withCredentials: true }
+      await axiosInstance.patch(
+        `/booking/${bookingId}/confirm`,
       );
-      const updatedBookings = newBookings.map((booking) =>
+
+      // Update the receivedBookings state
+      const updatedBookings = receivedBookings.map((booking) =>
         booking.id === bookingId ? { ...booking, status: "Confirmed" } : booking
       );
-      setNewBookings(updatedBookings);
+      setReceivedBookings(updatedBookings);
     } catch (error) {
       console.error("Error confirming booking:", error);
     } finally {
@@ -114,10 +110,27 @@ const Bookings = () => {
         {},
         { withCredentials: true }
       );
-      const updatedBookings = newBookings.map((booking) =>
-        booking.id === bookingId ? { ...booking, status: "Cancelled" } : booking
+
+      // Check if the booking is in received or sent bookings and update accordingly
+      const isInReceived = receivedBookings.some(
+        (booking) => booking.id === bookingId
       );
-      setNewBookings(updatedBookings);
+
+      if (isInReceived) {
+        const updatedBookings = receivedBookings.map((booking) =>
+          booking.id === bookingId
+            ? { ...booking, status: "Cancelled" }
+            : booking
+        );
+        setReceivedBookings(updatedBookings);
+      } else {
+        const updatedBookings = sentBookings.map((booking) =>
+          booking.id === bookingId
+            ? { ...booking, status: "Cancelled" }
+            : booking
+        );
+        setSentBookings(updatedBookings);
+      }
     } catch (error) {
       console.error("Error cancelling booking:", error);
     } finally {
@@ -134,12 +147,27 @@ const Bookings = () => {
         {},
         { withCredentials: true }
       );
-      const updatedBookings = newBookings.map((booking) =>
-        booking.id === bookingId
-          ? { ...booking, status: "Rescheduled" }
-          : booking
+
+      // Check if the booking is in received or sent bookings and update accordingly
+      const isInReceived = receivedBookings.some(
+        (booking) => booking.id === bookingId
       );
-      setNewBookings(updatedBookings);
+
+      if (isInReceived) {
+        const updatedBookings = receivedBookings.map((booking) =>
+          booking.id === bookingId
+            ? { ...booking, status: "Rescheduled" }
+            : booking
+        );
+        setReceivedBookings(updatedBookings);
+      } else {
+        const updatedBookings = sentBookings.map((booking) =>
+          booking.id === bookingId
+            ? { ...booking, status: "Rescheduled" }
+            : booking
+        );
+        setSentBookings(updatedBookings);
+      }
     } catch (error) {
       console.error("Error rescheduling booking:", error);
     } finally {
@@ -159,7 +187,7 @@ const Bookings = () => {
 
   const handleReviewSubmit = async (e) => {
     e.preventDefault();
-    if (!selectedBooking || rating === 0 || isProvider) return;
+    if (!selectedBooking || rating === 0) return;
 
     setIsSubmitting(true);
     try {
@@ -174,15 +202,20 @@ const Bookings = () => {
       await axios.post(
         "https://directly-core.onrender.com/review",
         reviewData,
-        { withCredentials: true }
+        {
+          withCredentials: true,
+        }
       );
 
-      const updatedOldBookings = oldBookings.map((booking) =>
-        booking.id === selectedBooking.id
-          ? { ...booking, hasReviewed: true }
-          : booking
-      );
-      setOldBookings(updatedOldBookings);
+      // Update the hasReviewed status in the appropriate bookings list
+      const updateBookings = (bookings) =>
+        bookings.map((booking) =>
+          booking.id === selectedBooking.id
+            ? { ...booking, hasReviewed: true }
+            : booking
+        );
+
+      setSentBookings(updateBookings(sentBookings));
       setShowReviewModal(false);
       setSelectedBooking(null);
     } catch (error) {
@@ -315,98 +348,120 @@ const Bookings = () => {
     );
   }
 
+  const BookingsList = ({ bookings, type }) => (
+    <div className="flex flex-col gap-4">
+      <div className="flex items-center justify-between border-b pb-4 font-semibold text-gray-700">
+        <div className="w-1/5">
+          {type === "received" ? "Client Name" : "Service Provider"}
+        </div>
+        <div className="w-1/5">Contact Details</div>
+        <div className="flex flex-row w-2/5 justify-between">
+          <div className="w-1/2">Date</div>
+          <div className="w-1/2">Time</div>
+        </div>
+        <div className="w-1/5">Status</div>
+        <div className="w-40">{type === "received" ? "Action" : "Review"}</div>
+      </div>
+
+      {bookings.length > 0 ? (
+        bookings.map((booking) => (
+          <div
+            key={booking.id}
+            className="flex items-center justify-between border-b pb-4 last:border-b-0"
+          >
+            {console.log("Provider: ", !booking.serviceProvider)}
+            <div className="w-1/5">
+              {type === "received" || !booking.serviceProvider
+                ? booking.name
+                : booking.serviceProvider}
+            </div>
+            <div className="w-1/5">{booking.contact}</div>
+            <div className="flex flex-row w-2/5 justify-between">
+              <div className="w-1/2">{booking.dateTime.split(" ")[0]}</div>
+              <div className="w-1/2">{booking.dateTime.split(" ")[1]}</div>
+            </div>
+            <div className={`w-1/5 ${getStatusColor(booking.status)}`}>
+              {booking.status}
+            </div>
+            <div className="w-40">
+              {type === "received" ? (
+                <ActionDropdown booking={booking} />
+              ) : (
+                !booking.hasReviewed && (
+                  <button
+                    className="bg-blue-100 text-blue-800 px-4 py-1 rounded hover:bg-blue-200 transition-colors"
+                    onClick={() => openReviewModal(booking)}
+                  >
+                    Leave Review
+                  </button>
+                )
+              )}
+              {type === "sent" && booking.hasReviewed && (
+                <span className="text-gray-500 text-sm">Reviewed</span>
+              )}
+            </div>
+          </div>
+        ))
+      ) : (
+        <div className="text-center py-4 text-gray-500">No bookings found</div>
+      )}
+    </div>
+  );
+
   return (
     <div className="w-full flex flex-col gap-8 p-6 border-2">
-      {/* New Bookings Section */}
+      {/* Calendar Section */}
       <div className="bg-white rounded-lg shadow-md">
         <div className="p-4 border-b">
-          <h2 className="text-xl font-semibold">
-            {isProvider ? "Received Bookings" : "Your Bookings"}
+          <h2 className="text-xl font-semibold flex items-center gap-2">
+            Schedule Calendar
           </h2>
         </div>
         <div className="p-4">
-          <div className="flex flex-col gap-4">
-            {/* Header Row */}
-            <div className="flex items-center justify-between border-b pb-4 font-semibold text-gray-700">
-              <div className="w-1/5">
-                {isProvider ? "Client Name" : "Service Provider"}
+          <div className="grid grid-cols-7 gap-1 text-sm">
+            {["Mon", "Tue", "Wed", "Thurs", "Fri", "Sat", "Sun"].map((day) => (
+              <div key={day} className="text-center font-medium p-2">
+                {day}
               </div>
-              <div className="w-1/5">Contact Details</div>
-              <div className="flex flex-row w-2/5 justify-between">
-                <div className="w-1/2">Date</div>
-                <div className="w-1/2">Time</div>
-              </div>
-              <div className="w-1/5">Status</div>
-              <div className="w-40">{isProvider ? "Action" : ""}</div>
-            </div>
-
-            {/* Booking details rows */}
-            {newBookings.map((booking) => (
+            ))}
+            {[...Array(31)].map((_, i) => (
               <div
-                key={booking.id}
-                className="flex items-center justify-between border-b pb-4 last:border-b-0"
+                key={i}
+                className={`text-center p-2 ${
+                  i + 1 === 7 ? "bg-blue-100 rounded" : ""
+                }`}
               >
-                <div className="w-1/5">
-                  {isProvider ? booking.name : booking.serviceProvider}
-                </div>
-                <div className="w-1/5">{booking.contact}</div>
-                <div className="flex flex-row w-2/5 justify-between">
-                  <div className="w-1/2">{booking.dateTime.split(" ")[0]}</div>
-                  <div className="w-1/2">{booking.dateTime.split(" ")[1]}</div>
-                </div>
-                <div className={`w-1/5 ${getStatusColor(booking.status)}`}>
-                  {booking.status}
-                </div>
-                <div className="w-40">
-                  {isProvider && <ActionDropdown booking={booking} />}
-                </div>
+                {i + 1}
               </div>
             ))}
           </div>
         </div>
       </div>
 
-      {/* Old Bookings Section */}
+      {/* Sent Bookings Section - Visible to all users */}
       <div className="bg-white rounded-lg shadow-md">
         <div className="p-4 border-b">
-          <h2 className="text-xl font-semibold">Past Bookings</h2>
+          <h2 className="text-xl font-semibold">Sent Bookings</h2>
         </div>
         <div className="p-4">
-          <div className="flex flex-col gap-4">
-            {oldBookings.map((booking) => (
-              <div
-                key={booking.id}
-                className="flex items-center justify-between border-b pb-4 last:border-b-0"
-              >
-                <div className="w-1/5">
-                  {isProvider ? booking.name : booking.serviceProvider}
-                </div>
-                <div className="w-1/5">{booking.address}</div>
-                <div className="w-1/5">{booking.dateTime}</div>
-                <div className={`w-1/5 ${getStatusColor(booking.status)}`}>
-                  {booking.status}
-                </div>
-                <div className="w-1/5 text-right">
-                  {!isProvider && !booking.hasReviewed && (
-                    <button
-                      className="bg-blue-100 text-blue-800 px-4 py-1 rounded hover:bg-blue-200 transition-colors"
-                      onClick={() => openReviewModal(booking)}
-                    >
-                      Leave Review
-                    </button>
-                  )}
-                  {!isProvider && booking.hasReviewed && (
-                    <span className="text-gray-500 text-sm">Reviewed</span>
-                  )}
-                </div>
-              </div>
-            ))}
-          </div>
+          <BookingsList bookings={sentBookings} type="sent" />
         </div>
       </div>
 
-      {/* Review Modal - only rendered for non-provider users */}
-      {!isProvider && showReviewModal && (
+      {/* Received Bookings Section - Only visible to service providers */}
+      {isProvider && (
+        <div className="bg-white rounded-lg shadow-md">
+          <div className="p-4 border-b">
+            <h2 className="text-xl font-semibold">Received Bookings</h2>
+          </div>
+          <div className="p-4">
+            <BookingsList bookings={receivedBookings} type="received" />
+          </div>
+        </div>
+      )}
+
+      {/* Review Modal */}
+      {showReviewModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white rounded-lg p-6 w-full max-w-md">
             <h3 className="text-xl font-semibold mb-4">
@@ -456,34 +511,6 @@ const Bookings = () => {
           </div>
         </div>
       )}
-
-      {/* Calendar Section - Optional, can be removed if not needed */}
-      <div className="w-1/3 bg-white rounded-lg shadow-md">
-        <div className="p-4 border-b">
-          <h2 className="text-xl font-semibold flex items-center gap-2">
-            Schedule Calendar
-          </h2>
-        </div>
-        <div className="p-4">
-          <div className="grid grid-cols-7 gap-1 text-sm">
-            {["Mon", "Tue", "Wed", "Thurs", "Fri", "Sat", "Sun"].map((day) => (
-              <div key={day} className="text-center font-medium p-2">
-                {day}
-              </div>
-            ))}
-            {[...Array(31)].map((_, i) => (
-              <div
-                key={i}
-                className={`text-center p-2 ${
-                  i + 1 === 7 ? "bg-blue-100 rounded" : ""
-                }`}
-              >
-                {i + 1}
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
     </div>
   );
 };

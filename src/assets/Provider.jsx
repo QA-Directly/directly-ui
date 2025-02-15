@@ -1,7 +1,6 @@
 import { SendHorizontal } from "lucide-react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { useProvider } from "../Contexts/ProviderContext";
-import { useAuth } from "../Contexts/AuthContext"; // Add this import
 
 import Header from "./Header";
 
@@ -9,7 +8,7 @@ import Footer from "../components/Footer";
 
 function Provider() {
   const { getProviderById, loading, error } = useProvider();
-  const { userProfile } = useAuth(); // Get userProfile from authContext
+
   const { id } = useParams(); // Get the provider ID from URL
 
   const StarRating = ({ rating }) => {
@@ -40,6 +39,7 @@ function Provider() {
 
   const ProfileImage = ({ provider }) => {
     if (provider.profilePicture) {
+
       return (
         <img
           src={provider.profilePicture}
@@ -99,11 +99,8 @@ function Provider() {
       </div>
     );
   }
+console.log("Providers: ", provider)
 
-  // Check if mediaFiles exists and has items
-  const hasMediaFiles =
-    userProfile.profilePicture && userProfile.profilePicture.length > 0;
-  console.log(userProfile.profilePicture);
 
   return (
     <div className="bg-[#EDEBEB] flex flex-col justify-between">
