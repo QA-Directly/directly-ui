@@ -7,6 +7,8 @@ const SocialAuth = ({ action }) => {
 
   const handleSocialAuth = (provider) => {
     setIsLoading(true);
+    // Set OAuth pending flag before redirect
+    localStorage.setItem("oauth_pending", "true");
     // Redirect to the backend auth endpoint
     window.location.href = `https://directly-core.onrender.com/auth/${provider}`;
   };
@@ -18,7 +20,7 @@ const SocialAuth = ({ action }) => {
         <p className="w-full text-center">Or {action} with</p>
         <div className="w-1/2 border-t-2"></div>
       </div>
-      <div className="flex flex-row justify-centergap-8 items-center">
+      <div className="flex flex-row justify-center gap-8 items-center">
         <button
           onClick={() => handleSocialAuth("facebook")}
           disabled={isLoading}

@@ -163,7 +163,7 @@ const Booking = () => {
 
       if (response.status >= 200 && response.status < 300) {
         alert("Booking successful!");
-        navigate("/dashboard/bookings");
+        navigate("/bookingsuccess");
       }
     } catch (error) {
       console.error("Booking error:", error);

@@ -29,6 +29,7 @@ import ManageProviders from "./components/Admin/ManageProviders";
 import ManageUsers from "./components/Admin/ManageUsers";
 import Analysis from "./components/Admin/Analysis";
 import AdminNotification from "./components/Admin/AdminNotification";
+import BookingSuccess from "./components/BookingSuccess";
 
 // New AdminRoute component for protected admin routes
 const AdminRoute = ({ children }) => {
@@ -86,6 +87,7 @@ function App() {
             <Route path="/profile" element={<Provider />} />
             <Route path="/provider/:id" element={<Provider />} />
             <Route path="/book/:id" element={<Booking />} />
+            <Route path="/bookingSuccess" element={<BookingSuccess />} />
             <Route
               path="/provider/application"
               element={<ProviderApplication />}

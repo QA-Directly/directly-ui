@@ -15,6 +15,7 @@ const AUTH_STATUS_KEY = "auth_status";
 const USER_DATA_KEY = "user_data";
 const USER_PROFILE_KEY = "user_profile";
 const TOKEN_REFRESH_INTERVAL = 25 * 60 * 1000;
+const OAUTH_STATE_KEY = "oauth_pending";
 
 export const AuthProvider = ({ children }) => {
   const [authenticated, setAuthenticated] = useState(() => {
@@ -35,6 +36,37 @@ export const AuthProvider = ({ children }) => {
   const [isLoading, setIsLoading] = useState(true);
   const [isLoggingIn, setIsLoggingIn] = useState(false);
   const [refreshInterval, setRefreshInterval] = useState(null);
+
+  // Initial auth check including OAuth return
+  useEffect(() => {
+    const checkAuthStatus = async () => {
+      try {
+        // Check if returning from OAuth
+        const isReturningFromOAuth =
+          localStorage.getItem(OAUTH_STATE_KEY) === "true";
+
+        if (isReturningFromOAuth) {
+          localStorage.removeItem(OAUTH_STATE_KEY);
+          // Small delay to ensure cookie is set
+          await new Promise((resolve) => setTimeout(resolve, 100));
+        }
+
+        const response = await axiosInstance.get("/auth/profile");
+        if (response.data) {
+          setAuthenticated(true);
+          setUser(response.data);
+          setUserProfile(response.data);
+        }
+      } catch (error) {
+        console.error("Auth status check failed:", error);
+        handleLogout();
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    checkAuthStatus();
+  }, []);
 
   // Local storage persistence
   useEffect(() => {
@@ -68,6 +100,7 @@ export const AuthProvider = ({ children }) => {
     localStorage.removeItem(AUTH_STATUS_KEY);
     localStorage.removeItem(USER_DATA_KEY);
     localStorage.removeItem(USER_PROFILE_KEY);
+    localStorage.removeItem(OAUTH_STATE_KEY);
   };
 
   const fetchUserProfile = async () => {
@@ -150,7 +183,7 @@ export const AuthProvider = ({ children }) => {
       const originalRequest = error.config;
 
       if (
-        error.response?.userstatus === 401 &&
+        error.response?.status === 401 &&
         !isLoggingIn &&
         !originalRequest.url?.includes("/auth/refresh") &&
         !originalRequest._retry &&
