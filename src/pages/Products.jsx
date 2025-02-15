@@ -47,7 +47,7 @@ const Products = () => {
     { name: "DJ & Entertainment Services", icon: Music },
     { name: "Fitness & Personal Training Services", icon: Dumbbell },
   ];
-  let averageRating;
+
   // get data from context
   const { providers, loading, error } = useProvider();
 
@@ -209,9 +209,9 @@ const Products = () => {
                   key={serviceProvider._id}
                   className=""
                 >
-                  {serviceProvider.mediaFiles ? (
+                  {serviceProvider.profilePicture ? (
                     <img
-                      src={serviceProvider.mediaFiles[0]}
+                      src={serviceProvider.profilePicture}
                       className="w-full h-56 rounded-lg"
                       alt={serviceProvider.businessName}
                     />
