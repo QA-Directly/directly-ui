@@ -1,17 +1,15 @@
 import { SendHorizontal } from "lucide-react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { useProvider } from "../Contexts/ProviderContext";
-import placeholder from "../assets/occupations/baber.png";
+import { useAuth } from "../Contexts/AuthContext"; // Add this import
 
 import Header from "./Header";
-
-// Import providers data
-// import { providersData } from "../utils/ProvidersData";
 
 import Footer from "../components/Footer";
 
 function Provider() {
   const { getProviderById, loading, error } = useProvider();
+  const { userProfile } = useAuth(); // Get userProfile from authContext
   const { id } = useParams(); // Get the provider ID from URL
 
   const StarRating = ({ rating }) => {
@@ -26,6 +24,52 @@ function Provider() {
             )}
           </span>
         ))}
+      </div>
+    );
+  };
+
+  const getInitials = (businessName) => {
+    if (!businessName) return "?";
+    return businessName
+      .split(" ")
+      .map((word) => word[0])
+      .join("")
+      .toUpperCase()
+      .slice(0, 2);
+  };
+
+  const ProfileImage = ({ provider }) => {
+    if (provider.profilePicture) {
+      return (
+        <img
+          src={provider.profilePicture}
+          className="w-full rounded-full"
+          alt={provider.businessName}
+        />
+      );
+    }
+
+    return (
+      <div className="w-full aspect-square rounded-full bg-[#CBE9F4] flex items-center justify-center text-2xl font-bold text-[#001f3f]">
+        {getInitials(provider.businessName)}
+      </div>
+    );
+  };
+
+  const MobileProfileImage = ({ provider }) => {
+    if (provider.profilePicture) {
+      return (
+        <img
+          src={provider.profilePicture}
+          className="flex md:hidden rounded-full w-1/3"
+          alt={provider.businessName}
+        />
+      );
+    }
+
+    return (
+      <div className="flex md:hidden rounded-full w-1/3 aspect-square bg-[#CBE9F4] items-center justify-center text-xl font-bold text-[#001f3f]">
+        {getInitials(provider.businessName)}
       </div>
     );
   };
@@ -47,7 +91,6 @@ function Provider() {
   }
 
   const provider = getProviderById(id);
-  console.log(provider);
 
   if (!provider) {
     return (
@@ -58,24 +101,17 @@ function Provider() {
   }
 
   // Check if mediaFiles exists and has items
-  const hasMediaFiles = provider.mediaFiles && provider.mediaFiles.length > 0;
+  const hasMediaFiles =
+    userProfile.profilePicture && userProfile.profilePicture.length > 0;
+  console.log(userProfile.profilePicture);
 
   return (
     <div className="bg-[#EDEBEB] flex flex-col justify-between">
       <Header />
-
       {/*  profile */}
       <div className="w-[90%] md:w-4/5 rounded-2xl border-4 flex flex-row justify-evenly items-center mt-8 p-4 md:p-8 bg-white m-auto">
         <div className="hidden w-1/4 md:flex flex-col justify-center items-center gap-2">
-          {hasMediaFiles ? (
-            <img
-              src={provider.mediaFiles[0]}
-              className="flex md:hidden rounded-full w-1/3"
-              alt=""
-            />
-          ) : (
-            <img src={placeholder} className="w-full rounded-full" />
-          )}
+          <ProfileImage provider={provider} />
           <p className="hidden md:flex bg-[#CBE9F4] w-2/3 p-1 rounded-3xl items-start mr-40 justify-center">
             {provider.status === "approved" ? "Verified ID" : "Unverified"}
           </p>
@@ -83,18 +119,7 @@ function Provider() {
         </div>
         <div className="w-full md:w-2/3 flex flex-col gap-4">
           <div className="flex flex-row justify-between items-center">
-            {hasMediaFiles ? (
-              <img
-                src={provider.mediaFiles[0]}
-                className="flex md:hidden rounded-full w-1/3"
-                alt=""
-              />
-            ) : (
-              <img
-                src={placeholder}
-                className="flex md:hidden rounded-full w-1/3"
-              />
-            )}
+            <MobileProfileImage provider={provider} />
             <h2 className="text-lg md:text-3xl font-bold">
               {provider.businessName}
             </h2>
@@ -206,7 +231,7 @@ function Provider() {
             Gallery
           </div>
           <div className="w-full p-8">
-            {hasMediaFiles ? (
+            {provider.mediaFiles && provider.mediaFiles.length > 0 ? (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-8 place-items-center">
                 {provider.mediaFiles.map((image, index) => (
                   <img

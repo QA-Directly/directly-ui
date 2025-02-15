@@ -38,18 +38,18 @@ export function ProviderContextProvider({ children }) {
           response.data.map(async (provider) => {
             try {
               const reviewUrl = `https://directly-core.onrender.com/review/service/${provider._id}`;
-              console.log(
-                `[Review Debug] Fetching reviews for service ${provider._id}`
-              );
+              // console.log(
+              //   `[Review Debug] Fetching reviews for service ${provider._id}`
+              // );
 
               const reviewResponse = await axios.get(reviewUrl, {
                 withCredentials: true, // Ensure cookies are sent with this request
               });
 
               if (reviewResponse.data && Array.isArray(reviewResponse.data)) {
-                console.log(
-                  `[Review Debug] Got ${reviewResponse.data.length} reviews for service ${provider._id}`
-                );
+                // console.log(
+                //   `[Review Debug] Got ${reviewResponse.data.length} reviews for service ${provider._id}`
+                // );
 
                 return {
                   ...provider,

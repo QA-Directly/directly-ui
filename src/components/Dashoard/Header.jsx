@@ -28,7 +28,6 @@ function Header() {
       </div>
       <div className="flex flex-row gap-4 justify-center items-center">
         <img src={dp} alt="" className="w-12 h-12 rounded-full" />
-        {console.log(userProfile)}
         <p className="font-bold text-lg">{userProfile.firstName}</p>
       </div>
     </div>

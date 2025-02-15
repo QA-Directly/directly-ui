@@ -12,67 +12,79 @@ const Bookings = () => {
   const { axiosInstance, userProfile } = useAuth();
   const [serviceId, setServiceId] = useState(userProfile.serviceId);
 
-  // get userId
-  useEffect(() => {
-    setServiceId(userProfile.serviceId);
-  }, [userProfile]);
-
-  // New state for review modal
+  // Review state
   const [showReviewModal, setShowReviewModal] = useState(false);
   const [selectedBooking, setSelectedBooking] = useState(null);
   const [rating, setRating] = useState(0);
   const [comment, setComment] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Review functionality
-  const openReviewModal = (booking) => {
-    setSelectedBooking(booking);
-    setShowReviewModal(true);
-    setRating(0);
-    setComment("");
-  };
+  const isProvider = userProfile.role === "service-provider";
 
-  const closeReviewModal = () => {
-    setShowReviewModal(false);
-    setSelectedBooking(null);
-  };
+  useEffect(() => {
+    setServiceId(userProfile.serviceId);
+    console.log(userProfile);
+  }, [userProfile]);
 
-  const handleReviewSubmit = async (e) => {
-    e.preventDefault();
-    if (!selectedBooking || rating === 0) return;
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = () => setOpenDropdown(null);
+    document.addEventListener("click", handleClickOutside);
+    return () => document.removeEventListener("click", handleClickOutside);
+  }, []);
 
-    setIsSubmitting(true);
-    try {
-      const reviewData = {
-        userId: userProfile._id,
-        serviceId: "67ae1d2184a6c00b24ed0219", // From the fetch URL
-        bookingId: selectedBooking.id,
-        rating: rating,
-        comment: comment,
-      };
+  // Fetch bookings based on user role
+  useEffect(() => {
+    const fetchBookings = async () => {
+      try {
+        let response;
+        if (isProvider) {
+          // Fetch bookings received by the service provider
+          response = await axiosInstance.get(`/booking/service/${serviceId}`);
+          console.log("Provider bookings :");
+        } else {
+          // Fetch bookings made by the user
+          response = await axiosInstance.get(
+            `/booking/user/${userProfile._id}`
+          );
+          console.log("User bookings: ");
+        }
 
-      await axios.post(
-        "https://directly-core.onrender.com/review",
-        reviewData,
-        { withCredentials: true }
-      );
+        const bookings = response.data;
+        const transformedBookings = bookings.map((booking) => ({
+          id: booking._id,
+          name: `${booking.firstName} ${booking.lastName}`,
+          contact: booking.phone,
+          dateTime: `${booking.date} ${booking.time}`,
+          status:
+            booking.status.charAt(0).toUpperCase() + booking.status.slice(1),
+          address: booking.address,
+          note: booking.note,
+          hasReviewed: booking.hasReviewed || false,
+          serviceProvider: booking.serviceProvider,
+          serviceId: booking.serviceId,
+        }));
 
-      // Mark this booking as reviewed
-      const updatedOldBookings = oldBookings.map((booking) =>
-        booking.id === selectedBooking.id
-          ? { ...booking, hasReviewed: true }
-          : booking
-      );
-      setOldBookings(updatedOldBookings);
+        // Split bookings based on date
+        const currentDate = new Date();
+        const newBooks = transformedBookings.filter(
+          (booking) => new Date(booking.dateTime.split(" ")[0]) >= currentDate
+        );
+        const oldBooks = transformedBookings.filter(
+          (booking) => new Date(booking.dateTime.split(" ")[0]) < currentDate
+        );
 
-      // Close modal and reset state
-      closeReviewModal();
-    } catch (error) {
-      console.error("Error submitting review:", error);
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
+        setNewBookings(newBooks);
+        setOldBookings(oldBooks);
+      } catch (error) {
+        console.error("Error fetching bookings:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchBookings();
+  }, [axiosInstance, isProvider, serviceId, userProfile._id]);
 
   const handleConfirm = async (bookingId) => {
     setIsActionLoading(true);
@@ -80,9 +92,7 @@ const Bookings = () => {
       await axios.patch(
         `https://directly-core.onrender.com/booking/${bookingId}/confirm`,
         {},
-        {
-          withCredentials: true,
-        }
+        { withCredentials: true }
       );
       const updatedBookings = newBookings.map((booking) =>
         booking.id === bookingId ? { ...booking, status: "Confirmed" } : booking
@@ -102,9 +112,7 @@ const Bookings = () => {
       await axios.patch(
         `https://directly-core.onrender.com/booking/${bookingId}/cancel`,
         {},
-        {
-          withCredentials: true,
-        }
+        { withCredentials: true }
       );
       const updatedBookings = newBookings.map((booking) =>
         booking.id === bookingId ? { ...booking, status: "Cancelled" } : booking
@@ -124,9 +132,7 @@ const Bookings = () => {
       await axios.patch(
         `https://directly-core.onrender.com/booking/${bookingId}/reschedule`,
         {},
-        {
-          withCredentials: true,
-        }
+        { withCredentials: true }
       );
       const updatedBookings = newBookings.map((booking) =>
         booking.id === bookingId
@@ -141,56 +147,50 @@ const Bookings = () => {
       setOpenDropdown(null);
     }
   };
-  // Close dropdown when clicking outside
-  useEffect(() => {
-    const handleClickOutside = () => setOpenDropdown(null);
-    document.addEventListener("click", handleClickOutside);
-    return () => document.removeEventListener("click", handleClickOutside);
-  }, []);
 
-  // Modify the fetchBookings code to add a hasReviewed property
-  useEffect(() => {
-    console.log("userProfile: ", serviceId);
-    const fetchBookings = async () => {
-      try {
-        const response = await axiosInstance.get(
-          `/booking/service/${serviceId}`
-        );
-        const bookings = response.data;
+  // Review functionality
+  const openReviewModal = (booking) => {
+    if (isProvider) return; // Prevent providers from reviewing
+    setSelectedBooking(booking);
+    setShowReviewModal(true);
+    setRating(0);
+    setComment("");
+  };
 
-        // Transform API data to match component structure
-        const transformedBookings = bookings.map((booking) => ({
-          id: booking._id,
-          name: `${booking.firstName} ${booking.lastName}`,
-          contact: booking.phone,
-          dateTime: `${booking.date} ${booking.time}`,
-          status:
-            booking.status.charAt(0).toUpperCase() + booking.status.slice(1),
-          address: booking.address,
-          note: booking.note,
-          hasReviewed: booking.hasReviewed || false, // Add this field
-        }));
+  const handleReviewSubmit = async (e) => {
+    e.preventDefault();
+    if (!selectedBooking || rating === 0 || isProvider) return;
 
-        // Split bookings into new and old based on date
-        const currentDate = new Date();
-        const newBooks = transformedBookings.filter(
-          (booking) => new Date(booking.dateTime.split(" ")[0]) >= currentDate
-        );
-        const oldBooks = transformedBookings.filter(
-          (booking) => new Date(booking.dateTime.split(" ")[0]) < currentDate
-        );
+    setIsSubmitting(true);
+    try {
+      const reviewData = {
+        userId: userProfile._id,
+        serviceId: selectedBooking.serviceId,
+        bookingId: selectedBooking.id,
+        rating: rating,
+        comment: comment,
+      };
 
-        setNewBookings(newBooks);
-        setOldBookings(oldBooks);
-      } catch (error) {
-        console.error("Error fetching bookings:", error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
+      await axios.post(
+        "https://directly-core.onrender.com/review",
+        reviewData,
+        { withCredentials: true }
+      );
 
-    fetchBookings();
-  }, [axiosInstance]);
+      const updatedOldBookings = oldBookings.map((booking) =>
+        booking.id === selectedBooking.id
+          ? { ...booking, hasReviewed: true }
+          : booking
+      );
+      setOldBookings(updatedOldBookings);
+      setShowReviewModal(false);
+      setSelectedBooking(null);
+    } catch (error) {
+      console.error("Error submitting review:", error);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   const getStatusColor = (status) => {
     switch (status.toLowerCase()) {
@@ -207,19 +207,6 @@ const Bookings = () => {
     }
   };
 
-  const handleStatusUpdate = async (bookingId, newStatus) => {
-    try {
-      await axiosInstance.patch(`/booking/${bookingId}`, { status: newStatus });
-      // Refresh bookings after update
-      const updatedBookings = newBookings.map((booking) =>
-        booking.id === bookingId ? { ...booking, status: newStatus } : booking
-      );
-      setNewBookings(updatedBookings);
-    } catch (error) {
-      console.error("Error updating booking status:", error);
-    }
-  };
-  // StarRating component for review form
   const StarRating = ({ value, onChange }) => {
     return (
       <div className="flex">
@@ -243,67 +230,11 @@ const Bookings = () => {
     );
   };
 
-  // Review Modal Component
-  const ReviewModal = () => {
-    if (!showReviewModal) return null;
-
-    return (
-      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-        <div className="bg-white rounded-lg p-6 w-full max-w-md">
-          <h3 className="text-xl font-semibold mb-4">
-            Leave a Review for {selectedBooking?.name}
-          </h3>
-          <form onSubmit={handleReviewSubmit}>
-            <div className="mb-4">
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Your Rating
-              </label>
-              <StarRating value={rating} onChange={setRating} />
-            </div>
-            <div className="mb-4">
-              <label
-                htmlFor="comment"
-                className="block text-sm font-medium text-gray-700 mb-2"
-              >
-                Your Review
-              </label>
-              <textarea
-                id="comment"
-                rows="4"
-                className="w-full border border-gray-300 rounded-md p-2"
-                value={comment}
-                onChange={(e) => setComment(e.target.value)}
-                placeholder="Share your experience..."
-              ></textarea>
-            </div>
-            <div className="flex justify-end gap-4">
-              <button
-                type="button"
-                onClick={closeReviewModal}
-                className="px-4 py-2 bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200"
-                disabled={isSubmitting}
-              >
-                Cancel
-              </button>
-              <button
-                type="submit"
-                className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
-                disabled={rating === 0 || isSubmitting}
-              >
-                {isSubmitting ? "Submitting..." : "Submit Review"}
-              </button>
-            </div>
-          </form>
-        </div>
-      </div>
-    );
-  };
-
   const ActionDropdown = ({ booking }) => {
     const isOpen = openDropdown === booking.id;
 
     const handleDropdownClick = (e) => {
-      e.stopPropagation(); // Prevent event from bubbling up
+      e.stopPropagation();
       setOpenDropdown(isOpen ? null : booking.id);
     };
 
@@ -386,7 +317,147 @@ const Bookings = () => {
 
   return (
     <div className="w-full flex flex-col gap-8 p-6 border-2">
-      {/* Calendar Section */}
+      {/* New Bookings Section */}
+      <div className="bg-white rounded-lg shadow-md">
+        <div className="p-4 border-b">
+          <h2 className="text-xl font-semibold">
+            {isProvider ? "Received Bookings" : "Your Bookings"}
+          </h2>
+        </div>
+        <div className="p-4">
+          <div className="flex flex-col gap-4">
+            {/* Header Row */}
+            <div className="flex items-center justify-between border-b pb-4 font-semibold text-gray-700">
+              <div className="w-1/5">
+                {isProvider ? "Client Name" : "Service Provider"}
+              </div>
+              <div className="w-1/5">Contact Details</div>
+              <div className="flex flex-row w-2/5 justify-between">
+                <div className="w-1/2">Date</div>
+                <div className="w-1/2">Time</div>
+              </div>
+              <div className="w-1/5">Status</div>
+              <div className="w-40">{isProvider ? "Action" : ""}</div>
+            </div>
+
+            {/* Booking details rows */}
+            {newBookings.map((booking) => (
+              <div
+                key={booking.id}
+                className="flex items-center justify-between border-b pb-4 last:border-b-0"
+              >
+                <div className="w-1/5">
+                  {isProvider ? booking.name : booking.serviceProvider}
+                </div>
+                <div className="w-1/5">{booking.contact}</div>
+                <div className="flex flex-row w-2/5 justify-between">
+                  <div className="w-1/2">{booking.dateTime.split(" ")[0]}</div>
+                  <div className="w-1/2">{booking.dateTime.split(" ")[1]}</div>
+                </div>
+                <div className={`w-1/5 ${getStatusColor(booking.status)}`}>
+                  {booking.status}
+                </div>
+                <div className="w-40">
+                  {isProvider && <ActionDropdown booking={booking} />}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* Old Bookings Section */}
+      <div className="bg-white rounded-lg shadow-md">
+        <div className="p-4 border-b">
+          <h2 className="text-xl font-semibold">Past Bookings</h2>
+        </div>
+        <div className="p-4">
+          <div className="flex flex-col gap-4">
+            {oldBookings.map((booking) => (
+              <div
+                key={booking.id}
+                className="flex items-center justify-between border-b pb-4 last:border-b-0"
+              >
+                <div className="w-1/5">
+                  {isProvider ? booking.name : booking.serviceProvider}
+                </div>
+                <div className="w-1/5">{booking.address}</div>
+                <div className="w-1/5">{booking.dateTime}</div>
+                <div className={`w-1/5 ${getStatusColor(booking.status)}`}>
+                  {booking.status}
+                </div>
+                <div className="w-1/5 text-right">
+                  {!isProvider && !booking.hasReviewed && (
+                    <button
+                      className="bg-blue-100 text-blue-800 px-4 py-1 rounded hover:bg-blue-200 transition-colors"
+                      onClick={() => openReviewModal(booking)}
+                    >
+                      Leave Review
+                    </button>
+                  )}
+                  {!isProvider && booking.hasReviewed && (
+                    <span className="text-gray-500 text-sm">Reviewed</span>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* Review Modal - only rendered for non-provider users */}
+      {!isProvider && showReviewModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 w-full max-w-md">
+            <h3 className="text-xl font-semibold mb-4">
+              Leave a Review for {selectedBooking?.serviceProvider}
+            </h3>
+            <form onSubmit={handleReviewSubmit}>
+              <div className="mb-4">
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Your Rating
+                </label>
+                <StarRating value={rating} onChange={setRating} />
+              </div>
+              <div className="mb-4">
+                <label
+                  htmlFor="comment"
+                  className="block text-sm font-medium text-gray-700 mb-2"
+                >
+                  Your Review
+                </label>
+                <textarea
+                  id="comment"
+                  rows="4"
+                  className="w-full border border-gray-300 rounded-md p-2"
+                  value={comment}
+                  onChange={(e) => setComment(e.target.value)}
+                  placeholder="Share your experience..."
+                ></textarea>
+              </div>
+              <div className="flex justify-end gap-4">
+                <button
+                  type="button"
+                  onClick={() => setShowReviewModal(false)}
+                  className="px-4 py-2 bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200"
+                  disabled={isSubmitting}
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+                  disabled={rating === 0 || isSubmitting}
+                >
+                  {isSubmitting ? "Submitting..." : "Submit Review"}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Calendar Section - Optional, can be removed if not needed */}
       <div className="w-1/3 bg-white rounded-lg shadow-md">
         <div className="p-4 border-b">
           <h2 className="text-xl font-semibold flex items-center gap-2">
@@ -413,91 +484,6 @@ const Bookings = () => {
           </div>
         </div>
       </div>
-
-      {/* New Bookings Section */}
-      <div className="bg-white rounded-lg shadow-md">
-        {userProfile.role === "service-provider" && (
-          <div className="p-4 border-b">
-            <h2 className="text-xl font-semibold">New Bookings</h2>
-          </div>
-        )}
-        <div className="p-4">
-          <div className="flex flex-col gap-4">
-            {/* Header Row */}
-            <div className="flex items-center justify-between border-b pb-4 font-semibold text-gray-700">
-              <div className="w-1/5">Name</div>
-              <div className="w-1/5">Contact Details</div>
-              <div className="flex flex-row w-2/5 justify-between">
-                <div className="w-1/2">Date</div>
-                <div className="w-1/2">Time</div>
-              </div>
-              <div className="w-1/5">Status</div>
-              <div className="w-40">Action</div>
-            </div>
-            {/* Booking details row */}
-            {newBookings.map((booking) => (
-              <div
-                key={booking.id}
-                className="flex items-center justify-between border-b pb-4 last:border-b-0"
-              >
-                <div className="w-1/5">{booking.name}</div>
-                <div className="w-1/5">{booking.contact}</div>
-                <div className="flex flex-row w-2/5 justify-between">
-                  <div className="w-1/2">{booking.dateTime.split(" ")[0]}</div>
-                  <div className="w-1/2">{booking.dateTime.split(" ")[1]}</div>
-                </div>
-                <div className={`w-1/5 ${getStatusColor(booking.status)}`}>
-                  {booking.status}
-                </div>
-                <div className="w-40">
-                  <ActionDropdown booking={booking} />
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
-
-      {/* Old Bookings Section - modified for review button */}
-      {userProfile.role === "service-provider" && (
-        <div className="bg-white rounded-lg shadow-md">
-          <div className="p-4 border-b">
-            <h2 className="text-xl font-semibold">Old Bookings</h2>
-          </div>
-          <div className="p-4">
-            <div className="flex flex-col gap-4">
-              {oldBookings.map((booking) => (
-                <div
-                  key={booking.id}
-                  className="flex items-center justify-between border-b pb-4 last:border-b-0"
-                >
-                  <div className="w-1/5">{booking.name}</div>
-                  <div className="w-1/5">{booking.address}</div>
-                  <div className="w-1/5">{booking.dateTime}</div>
-                  <div className={`w-1/5 ${getStatusColor(booking.status)}`}>
-                    {booking.status}
-                  </div>
-                  <div className="w-1/5 text-right">
-                    {!booking.hasReviewed ? (
-                      <button
-                        className="bg-blue-100 text-blue-800 px-4 py-1 rounded hover:bg-blue-200 transition-colors"
-                        onClick={() => openReviewModal(booking)}
-                      >
-                        Leave Review
-                      </button>
-                    ) : (
-                      <span className="text-gray-500 text-sm">Reviewed</span>
-                    )}
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Render the Review Modal */}
-      <ReviewModal />
     </div>
   );
 };

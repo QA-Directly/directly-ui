@@ -50,9 +50,7 @@ const Products = () => {
 
   // get data from context
   const { providers, loading, error } = useProvider();
-  useEffect(() => {
-    console.log("Retrieved Providers: ", providers);
-  }, [providers]);
+
   // render stars
   const renderStars = (rating) => {
     const fullStar = Math.floor(rating);
@@ -188,39 +186,62 @@ const Products = () => {
         </div>
         {/* Providers Grid */}
         <div className="bg-white grid grid-cols-1 md:grid-cols-4 justify-between items-center m-auto gap-10 md:gap-20 px-2 md:px-8 rounded-b-lg shadow-md py-8 md:py-12">
-          {providers.map((serviceProvider) => (
-            <Link
-              to={`/provider/${serviceProvider._id}`}
-              key={serviceProvider._id}
-              className="w-full h-full border flex flex-col justify-between gap-2 shadow-sm hover:shadow-md p-2 pb-4 md:p-4 rounded-lg"
+          {providers.map((serviceProvider, index) => (
+            <div
+              key={index}
+              className="w-full  border flex flex-col justify-between gap-8 shadow-sm hover:shadow-md p-2 pb-4 md:p-4 rounded-lg"
             >
-              {serviceProvider.mediaFiles ? (
-                <img
-                  src={serviceProvider.mediaFiles[0]}
-                  className="w-full h-56 rounded-lg"
-                />
-              ) : (
-                <img src={placeholder} className="w-full h-56 rounded-lg" />
-              )}
-              <p className="font-bold text-xl">
-                {serviceProvider.businessName}
-              </p>
-              <p>{serviceProvider.service}</p>
-              <div className="flex flex-col items-start gap-4">
-                {serviceProvider.reviews.map((review, index) => (
-                  <div key={index} className="flex flex-row gap-1">
-                    {renderStars(review.rating)}
-                    <p className="text-sm">{review.rating} rating</p>
-                  </div>
-                ))}
-                <Link
-                  to={`/book/${serviceProvider._id}`}
-                  className="bg-[#001F3F] text-white py-2 px-4 rounded-lg"
-                >
-                  Book Now
-                </Link>
-              </div>
-            </Link>
+              <Link
+                to={`/provider/${serviceProvider._id}`}
+                key={serviceProvider._id}
+                className=""
+              >
+                {serviceProvider.mediaFiles ? (
+                  <img
+                    src={serviceProvider.mediaFiles[0]}
+                    className="w-full h-56 rounded-lg"
+                  />
+                ) : (
+                  <img src={placeholder} className="w-full h-56 rounded-lg" />
+                )}
+                <p className="font-bold text-xl pt-4">
+                  {serviceProvider.businessName}
+                </p>
+                <p>{serviceProvider.service}</p>
+                <div className="flex flex-col items-start gap-4">
+                  {serviceProvider.reviews &&
+                  serviceProvider.reviews.length > 0 ? (
+                    serviceProvider.reviews.map((review, index) => (
+                      <div
+                        key={index}
+                        className="w-full flex flex-row justify-between pt-2"
+                      >
+                        {review?.rating ? (
+                          <div className="w-full flex flex-row justify-between">
+                            <div className="flex flex-row">
+                              {renderStars(review.rating)}
+                            </div>
+                            <p className="text-sm">
+                              {review.rating} rating
+                            </p>
+                          </div>
+                        ) : (
+                          <p>No review yet</p>
+                        )}
+                      </div>
+                    ))
+                  ) : (
+                    <p>No reviews yet</p>
+                  )}
+                </div>
+              </Link>
+              <Link
+                to={`/book/${serviceProvider._id}`}
+                className="bg-primary text-center text-white py-2 px-4 rounded-lg"
+              >
+                Book Now
+              </Link>
+            </div>
           ))}
         </div>
       </div>
